@@ -1,0 +1,1059 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#fff4e8">
+<title>Le Gâteau de Maman</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎂</text></svg>">
+<style>
+  :root {
+    --creme: #fff4e8;
+    --creme-2: #ffe9d4;
+    --rose: #ef7fa6;
+    --rose-fonce: #d65a87;
+    --choco: #5b3a29;
+    --choco-clair: #8a5a40;
+    --or: #e9b44c;
+    --menthe: #8fd3b6;
+    --blanc: #fffdf9;
+    --ombre: 0 10px 30px rgba(91, 58, 41, .18);
+    --emoji: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; height: 100%; overflow: hidden;
+    background: var(--creme);
+    color: var(--choco);
+    font-family: "Nunito", system-ui, sans-serif;
+    -webkit-user-select: none; user-select: none;
+  }
+  body {
+    background:
+      radial-gradient(circle at 15% 10%, #ffe1ea 0 12%, transparent 13%),
+      radial-gradient(circle at 90% 85%, #ffe1ea 0 10%, transparent 11%),
+      radial-gradient(circle at 85% 15%, #fff0c9 0 7%, transparent 8%),
+      var(--creme);
+  }
+
+  .ecran {
+    position: fixed; inset: 0;
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    padding: max(20px, env(safe-area-inset-top)) 18px max(20px, env(safe-area-inset-bottom));
+    text-align: center;
+  }
+  .ecran.actif { display: flex; animation: apparait .5s ease both; }
+  @keyframes apparait { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+  h1, h2 { font-family: "Pacifico", cursive; font-weight: 400; margin: .2em 0; line-height: 1.25; }
+  h1 { font-size: clamp(2rem, 9vw, 3.2rem); color: var(--rose-fonce); }
+  h2 { font-size: clamp(1.6rem, 7vw, 2.4rem); color: var(--rose-fonce); }
+  p { font-size: clamp(1.02rem, 4.2vw, 1.25rem); line-height: 1.5; max-width: 30em; margin: .5em auto; }
+  .emoji { font-family: var(--emoji); }
+  .grand-emoji { font-size: clamp(5rem, 28vw, 9rem); line-height: 1; font-family: var(--emoji); }
+  .flotte { animation: flotte 3s ease-in-out infinite; display: inline-block; }
+  @keyframes flotte { 50% { transform: translateY(-10px) rotate(-4deg); } }
+
+  .bouton {
+    font: 800 clamp(1.1rem, 4.6vw, 1.35rem) "Nunito", sans-serif;
+    color: #fff; background: var(--rose);
+    border: none; border-radius: 999px;
+    padding: .85em 1.8em; margin-top: 1.1em;
+    box-shadow: 0 6px 0 var(--rose-fonce), var(--ombre);
+    cursor: pointer; transition: transform .08s, box-shadow .08s;
+  }
+  .bouton:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--rose-fonce), var(--ombre); }
+  .bouton.secondaire { background: var(--blanc); color: var(--choco); box-shadow: 0 6px 0 #e7cdb6, var(--ombre); }
+  .bouton.secondaire:active { box-shadow: 0 2px 0 #e7cdb6, var(--ombre); }
+  .bouton[hidden] { display: none; }
+
+  .carte {
+    background: var(--blanc); border-radius: 24px; box-shadow: var(--ombre);
+    padding: 22px 20px; max-width: 420px; width: 100%;
+  }
+
+  /* ---------- Sons ---------- */
+  #son {
+    position: fixed; top: max(10px, env(safe-area-inset-top)); right: 12px; z-index: 50;
+    width: 44px; height: 44px; border-radius: 50%; border: none;
+    background: rgba(255,255,255,.85); box-shadow: var(--ombre);
+    font-size: 22px; font-family: var(--emoji); cursor: pointer;
+  }
+
+  /* ---------- Étape 1 : attraper les ingrédients ---------- */
+  #ecran-jeu { padding: 0; justify-content: flex-start; }
+  #jeu-canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
+  #recette {
+    position: relative; z-index: 2;
+    display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;
+    padding: max(10px, env(safe-area-inset-top)) 60px 8px;
+    pointer-events: none;
+  }
+  .ingr {
+    display: flex; align-items: center; gap: 4px;
+    background: rgba(255,255,255,.9); border-radius: 999px;
+    padding: 4px 10px 4px 6px; font-weight: 800; font-size: 15px;
+    box-shadow: 0 3px 10px rgba(91,58,41,.12);
+    transition: background .3s, transform .2s;
+  }
+  .ingr .emoji { font-size: 22px; }
+  .ingr.ok { background: #d9f5e7; }
+  .ingr.pop { transform: scale(1.2); }
+  #message-jeu {
+    position: relative; z-index: 2; margin-top: 8px;
+    font-weight: 800; font-size: 1.1rem; min-height: 1.6em;
+    color: var(--choco); pointer-events: none;
+    text-shadow: 0 1px 0 #fff;
+  }
+  #consignes {
+    position: absolute; inset: 0; z-index: 5;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255, 244, 232, .92); padding: 18px;
+  }
+  #consignes[hidden] { display: none; }
+  .liste-recette { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 10px 0; }
+  .liste-recette span { background: var(--creme-2); border-radius: 12px; padding: 6px 10px; font-weight: 700; }
+  .intrus { font-size: 1.8rem; letter-spacing: .08em; font-family: var(--emoji); }
+
+  /* ---------- Étape 2 : fouetter ---------- */
+  #zone-fouet {
+    position: relative; width: min(70vw, 280px); height: min(70vw, 280px);
+    border: none; background: none; padding: 0; cursor: pointer; margin: 10px auto;
+    touch-action: manipulation;
+  }
+  #saladier { font-size: min(52vw, 210px); line-height: 1; font-family: var(--emoji); display: block; }
+  #fouet {
+    position: absolute; top: -4%; left: 50%; font-size: min(24vw, 100px); font-family: var(--emoji);
+    transform-origin: 50% 90%; transform: translateX(-50%) rotate(-20deg); transition: transform .08s;
+    pointer-events: none;
+  }
+  #fouet.tourne { transform: translateX(-50%) rotate(25deg); }
+  .jauge { width: min(80vw, 320px); height: 26px; background: var(--blanc); border-radius: 999px; margin: 12px auto; overflow: hidden; box-shadow: inset 0 2px 6px rgba(91,58,41,.18); }
+  .jauge > div { height: 100%; width: 0; background: linear-gradient(90deg, var(--or), var(--rose)); border-radius: 999px; transition: width .1s; }
+  .eclaboussure { position: absolute; font-size: 26px; pointer-events: none; font-family: var(--emoji); animation: eclabousse .7s ease-out forwards; }
+  @keyframes eclabousse { to { transform: translate(var(--dx), var(--dy)) scale(.4); opacity: 0; } }
+
+  /* ---------- Étape 3 : cuisson ---------- */
+  .four {
+    width: min(78vw, 300px); background: #c9ced6; border-radius: 22px; padding: 16px 16px 22px;
+    box-shadow: var(--ombre), inset 0 -6px 0 #aab1bb; margin: 8px auto;
+  }
+  .four .boutons-four { display: flex; gap: 10px; justify-content: flex-end; margin-bottom: 10px; }
+  .four .boutons-four i { width: 18px; height: 18px; border-radius: 50%; background: #6c7380; display: block; }
+  .vitre {
+    height: min(46vw, 180px); border-radius: 14px; background: #2a2220; position: relative; overflow: hidden;
+    box-shadow: inset 0 0 0 6px #8d949f;
+  }
+  .vitre::before { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 100%, rgba(255,140,40,.55), transparent 70%); opacity: var(--chaleur, .3); transition: opacity .3s; }
+  #gateau-four {
+    position: absolute; left: 50%; bottom: 18%; width: 55%; height: 32%;
+    transform: translateX(-50%) scaleY(var(--levee, .6)); transform-origin: bottom;
+    background: #f3e1b0; border-radius: 40% 40% 8px 8px / 60% 60% 8px 8px;
+    transition: background .2s;
+  }
+  .grille { position: absolute; left: 8%; right: 8%; bottom: 16%; height: 4px; background: #777; border-radius: 2px; }
+  .barre-cuisson {
+    position: relative; width: min(80vw, 320px); height: 30px; margin: 16px auto 4px;
+    border-radius: 999px; overflow: hidden;
+    background: linear-gradient(90deg, #f3e1b0 0%, #ecd08a 40%, #d9a441 60%, #a55f24 80%, #3d2416 100%);
+    box-shadow: var(--ombre);
+  }
+  #zone-doree { position: absolute; top: 0; bottom: 0; border: 3px solid #fff; border-radius: 8px; box-shadow: 0 0 0 2px var(--choco) inset; }
+  #curseur-cuisson { position: absolute; top: -4px; bottom: -4px; width: 6px; margin-left: -3px; background: var(--choco); border-radius: 3px; box-shadow: 0 0 0 2px #fff; }
+  .legende-cuisson { display: flex; justify-content: space-between; width: min(80vw, 320px); margin: 0 auto; font-size: .85rem; font-weight: 700; opacity: .75; }
+
+  /* ---------- Étape 4 : bougies ---------- */
+  .gateau {
+    position: relative; width: min(76vw, 300px); margin: 70px auto 10px;
+  }
+  .etage { position: relative; margin: 0 auto; border-radius: 14px 14px 10px 10px; }
+  .etage.haut { width: 70%; height: 70px; background: #f7c6d6; }
+  .etage.bas { width: 100%; height: 90px; background: #8a5a40; margin-top: -4px; border-radius: 16px 16px 12px 12px; }
+  .etage.haut::after, .etage.bas::after {
+    content: ""; position: absolute; left: 0; right: 0; top: 0; height: 26px; border-radius: 14px 14px 0 0;
+    background:
+      radial-gradient(circle at 10% 100%, var(--g) 0 12px, transparent 13px),
+      radial-gradient(circle at 30% 100%, var(--g) 0 9px, transparent 10px),
+      radial-gradient(circle at 52% 100%, var(--g) 0 13px, transparent 14px),
+      radial-gradient(circle at 74% 100%, var(--g) 0 10px, transparent 11px),
+      radial-gradient(circle at 92% 100%, var(--g) 0 12px, transparent 13px),
+      linear-gradient(var(--g), var(--g)) top / 100% 14px no-repeat;
+  }
+  .etage.haut::after { --g: #fffaf3; }
+  .etage.bas::after { --g: #f7c6d6; }
+  .etage.bas::before {
+    content: "🍓 🍓 🍓 🍓"; position: absolute; left: 0; right: 0; bottom: 16px; font-family: var(--emoji); font-size: 26px; letter-spacing: 4px;
+  }
+  .assiette { width: 115%; margin-left: -7.5%; height: 16px; background: #fff; border-radius: 50%; box-shadow: var(--ombre); margin-top: -6px; }
+  #bougies { position: absolute; left: 15%; right: 15%; bottom: 100%; display: flex; justify-content: space-around; align-items: flex-end; height: 90px; }
+  .bougie {
+    position: relative; width: 12px; height: 46px; border-radius: 4px;
+    background: repeating-linear-gradient(135deg, #fff 0 6px, var(--rose) 6px 12px);
+    border: none; padding: 0; cursor: pointer;
+  }
+  .bougie::before { content: ""; position: absolute; left: -24px; right: -24px; top: -60px; bottom: 0; } /* zone tactile élargie */
+  .flamme {
+    position: absolute; left: 50%; bottom: 100%; width: 16px; height: 26px; margin-left: -8px; margin-bottom: 2px;
+    background: radial-gradient(ellipse at 50% 70%, #fff7b0 0 25%, #ffc93c 45%, #ff7a1a 75%);
+    border-radius: 50% 50% 50% 50% / 65% 65% 35% 35%;
+    animation: vacille .18s ease-in-out infinite alternate; transform-origin: bottom center;
+    box-shadow: 0 0 18px 6px rgba(255,180,60,.45);
+  }
+  @keyframes vacille { from { transform: rotate(-4deg) scaleY(1); } to { transform: rotate(4deg) scaleY(1.12); } }
+  .bougie.eteinte .flamme { display: none; }
+  .fumee { position: absolute; left: 50%; bottom: 100%; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: rgba(140,140,140,.55); animation: fumee 1.2s ease-out forwards; pointer-events: none; }
+  @keyframes fumee { to { transform: translate(8px, -60px) scale(3); opacity: 0; } }
+  #micro-info { font-size: .95rem; opacity: .8; min-height: 1.4em; }
+
+  /* ---------- Révélation ---------- */
+  #cadeau {
+    font-size: clamp(7rem, 40vw, 12rem); line-height: 1; font-family: var(--emoji);
+    background: none; border: none; cursor: pointer; padding: 0;
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse { 50% { transform: scale(1.08) rotate(3deg); } }
+  #cadeau.secoue { animation: secoue .5s ease-in-out 2; }
+  @keyframes secoue { 25% { transform: rotate(-12deg) scale(1.1); } 75% { transform: rotate(12deg) scale(1.1); } }
+
+  #ecran-bon { justify-content: flex-start; padding-top: max(62px, calc(env(safe-area-inset-top) + 52px)); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .bon {
+    position: relative; max-width: 380px; width: 100%; margin: 8px auto 0;
+    background: var(--blanc); border-radius: 26px; padding: 26px 22px 22px;
+    box-shadow: var(--ombre);
+    border: 3px dashed var(--rose);
+    animation: bon-arrive .9s cubic-bezier(.2,1.4,.4,1) both;
+  }
+  @keyframes bon-arrive { from { transform: scale(.3) rotate(-8deg); opacity: 0; } to { transform: none; opacity: 1; } }
+  .bon .etiquette { display: inline-block; background: var(--rose); color: #fff; font-weight: 800; letter-spacing: .25em; font-size: .85rem; padding: 5px 14px 5px 18px; border-radius: 999px; }
+  .bon h2 { margin: .25em 0 .1em; font-size: clamp(1.8rem, 8vw, 2.3rem); }
+  .bon .pour { font-weight: 700; margin: 0; }
+  .bon .details { font-size: 1rem; margin: .6em auto; }
+  #qr { display: block; margin: 14px auto 6px; width: min(62vw, 230px); height: auto; image-rendering: pixelated; border-radius: 10px; }
+  .bon .code { font-weight: 800; letter-spacing: .08em; margin: 4px 0; }
+  .bon .validite { font-size: .9rem; opacity: .75; margin: 2px 0; }
+  .bon .signature { font-family: "Pacifico", cursive; font-size: 1.25rem; color: var(--choco-clair); margin: .7em 0 0; }
+  .actions-bon { display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: center; margin: 10px 0 24px; }
+  .astuce { font-size: .9rem; opacity: .75; max-width: 380px; }
+
+  #confettis { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 40; }
+</style>
+</head>
+<body>
+
+<button id="son" aria-label="Couper le son">🔊</button>
+
+<!-- ============ Accueil ============ -->
+<section class="ecran actif" id="ecran-accueil">
+  <div class="grand-emoji flotte">🎂</div>
+  <h1 id="titre-accueil">Joyeux anniversaire&nbsp;!</h1>
+  <p>Un cadeau t'attend au bout de ce petit jeu…<br>mais il va falloir le mériter&nbsp;😉</p>
+  <p><strong>Mission&nbsp;: préparer le plus beau des gâteaux.</strong></p>
+  <button class="bouton" id="btn-commencer">C'est parti&nbsp;!</button>
+</section>
+
+<!-- ============ Étape 1 : attraper ============ -->
+<section class="ecran" id="ecran-jeu">
+  <canvas id="jeu-canvas"></canvas>
+  <div id="recette"></div>
+  <div id="message-jeu"></div>
+  <div id="consignes">
+    <div class="carte">
+      <h2>Étape 1 · Les courses</h2>
+      <p>Fais glisser ton doigt pour déplacer le saladier <span class="emoji">🥣</span> et attrape les ingrédients de la recette&nbsp;:</p>
+      <div class="liste-recette" id="liste-recette"></div>
+      <p>Mais attention aux intrus&nbsp;! Ils font tomber un ingrédient&nbsp;:</p>
+      <div class="intrus" id="liste-intrus"></div>
+      <button class="bouton" id="btn-jouer">J'y vais&nbsp;!</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Étape 2 : fouetter ============ -->
+<section class="ecran" id="ecran-fouet">
+  <h2>Étape 2 · Fouette&nbsp;!</h2>
+  <p>Tapote très vite sur le saladier pour mélanger la pâte.</p>
+  <button id="zone-fouet" aria-label="Fouetter">
+    <span id="saladier">🥣</span>
+    <span id="fouet">🥄</span>
+  </button>
+  <div class="jauge"><div id="jauge-fouet"></div></div>
+  <p id="message-fouet">&nbsp;</p>
+  <button class="bouton" id="btn-four" hidden>Au four&nbsp;! 🔥</button>
+</section>
+
+<!-- ============ Étape 3 : cuisson ============ -->
+<section class="ecran" id="ecran-four">
+  <h2>Étape 3 · La cuisson</h2>
+  <p>Sors le gâteau quand le curseur est dans la zone <strong>dorée</strong>&nbsp;!</p>
+  <div class="four">
+    <div class="boutons-four"><i></i><i></i><i></i></div>
+    <div class="vitre"><div class="grille"></div><div id="gateau-four"></div></div>
+  </div>
+  <div class="barre-cuisson"><div id="zone-doree"></div><div id="curseur-cuisson"></div></div>
+  <div class="legende-cuisson"><span>cru</span><span>doré</span><span>brûlé</span></div>
+  <p id="message-four">&nbsp;</p>
+  <button class="bouton" id="btn-sortir">Sortir le gâteau&nbsp;!</button>
+  <button class="bouton" id="btn-bougies" hidden>Décorer le gâteau 🕯️</button>
+</section>
+
+<!-- ============ Étape 4 : bougies ============ -->
+<section class="ecran" id="ecran-bougies">
+  <h2>Dernière étape&nbsp;!</h2>
+  <p>Fais un vœu… puis souffle les bougies&nbsp;!<br><small>(touche chaque flamme, ou souffle pour de vrai dans le micro)</small></p>
+  <div class="gateau">
+    <div id="bougies"></div>
+    <div class="etage haut"></div>
+    <div class="etage bas"></div>
+    <div class="assiette"></div>
+  </div>
+  <p id="micro-info">&nbsp;</p>
+  <button class="bouton secondaire" id="btn-micro">🎤 Souffler pour de vrai</button>
+  <button class="bouton" id="btn-cadeau" hidden>Découvrir ton cadeau 🎁</button>
+</section>
+
+<!-- ============ Cadeau à ouvrir ============ -->
+<section class="ecran" id="ecran-cadeau">
+  <h2>Bravo, le gâteau est parfait&nbsp;!</h2>
+  <p>Et maintenant… ton cadeau&nbsp;!<br>Touche-le pour l'ouvrir.</p>
+  <button id="cadeau" aria-label="Ouvrir le cadeau">🎁</button>
+</section>
+
+<!-- ============ Le bon cadeau ============ -->
+<section class="ecran" id="ecran-bon">
+  <div class="bon" id="bon">
+    <span class="etiquette">BON CADEAU</span>
+    <h2 id="bon-titre"></h2>
+    <p class="pour" id="bon-pour"></p>
+    <p class="details" id="bon-details"></p>
+    <canvas id="qr" aria-label="QR code du bon cadeau"></canvas>
+    <p class="code" id="bon-code"></p>
+    <p class="validite" id="bon-validite"></p>
+    <p class="signature" id="bon-signature"></p>
+  </div>
+  <div class="actions-bon">
+    <button class="bouton" id="btn-telecharger">📥 Garder mon bon</button>
+    <button class="bouton secondaire" id="btn-rejouer">🔁 Rejouer</button>
+  </div>
+  <p class="astuce">Astuce&nbsp;: enregistre l'image du bon pour le présenter le jour de l'atelier.</p>
+</section>
+
+<canvas id="confettis"></canvas>
+
+<script src="vendor/qrcode.js"></script>
+<script>
+/* =====================================================================
+   ✏️  PERSONNALISATION — c'est ici qu'il faut modifier les textes du bon
+   ===================================================================== */
+const CONFIG = {
+  prenom: "Maman",                          // Prénom ou surnom affiché
+  titreBon: "Atelier pâtisserie",           // Titre du bon
+  details: "Un atelier pour apprendre à réaliser de délicieuses pâtisseries… et repartir avec ses créations !",
+  code: "GATEAU-2026",                      // Code du bon (mets le vrai code si tu en as un)
+  validite: "Valable un an",                // Date ou durée de validité
+  signature: "Avec tout mon amour ❤️",      // Ta signature
+  bougies: 5,                               // Nombre de bougies sur le gâteau
+  // Contenu du QR code. Laisse vide ("") pour générer automatiquement un texte
+  // avec les infos ci-dessus, ou mets un lien (ex. "https://…" vers la
+  // réservation ou le bon du prestataire) : le scanner ouvrira directement ce lien.
+  qrContenu: "",
+};
+/* ===================================================================== */
+
+const $ = (s) => document.querySelector(s);
+const pause = (ms) => new Promise((r) => setTimeout(r, ms));
+const hasard = (a, b) => a + Math.random() * (b - a);
+const choisir = (t) => t[Math.floor(Math.random() * t.length)];
+
+/* ---------------------- Navigation entre écrans ---------------------- */
+function afficher(id) {
+  document.querySelectorAll(".ecran").forEach((e) => e.classList.toggle("actif", e.id === id));
+}
+
+/* ------------------------------- Sons -------------------------------- */
+const Son = {
+  ctx: null, coupe: false,
+  init() {
+    if (this.ctx) return;
+    try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
+  },
+  note(freq, duree = .12, type = "sine", vol = .12, retard = 0) {
+    if (this.coupe || !this.ctx) return;
+    const t = this.ctx.currentTime + retard;
+    const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(vol, t + .01);
+    g.gain.exponentialRampToValueAtTime(.0001, t + duree);
+    o.connect(g).connect(this.ctx.destination);
+    o.start(t); o.stop(t + duree + .02);
+  },
+  attrape() { this.note(660, .1, "triangle"); this.note(990, .12, "triangle", .1, .06); },
+  rate()    { this.note(180, .25, "sawtooth", .06); this.note(140, .3, "sawtooth", .05, .1); },
+  pop()     { this.note(hasard(500, 800), .07, "square", .05); },
+  souffle() { this.note(300, .2, "sine", .06); },
+  victoire() { [523, 659, 784, 1047].forEach((f, i) => this.note(f, .25, "triangle", .12, i * .12)); },
+  joyeux() {
+    // « Joyeux anniversaire » (mélodie traditionnelle, domaine public)
+    const N = { G4: 392, A4: 440, B4: 494, C5: 523, D5: 587, E5: 659, F5: 698, G5: 784 };
+    const air = [["G4",.75],["G4",.25],["A4",1],["G4",1],["C5",1],["B4",2],
+                 ["G4",.75],["G4",.25],["A4",1],["G4",1],["D5",1],["C5",2],
+                 ["G4",.75],["G4",.25],["G5",1],["E5",1],["C5",1],["B4",1],["A4",2],
+                 ["F5",.75],["F5",.25],["E5",1],["C5",1],["D5",1],["C5",2.5]];
+    let t = 0; const temps = .36;
+    air.forEach(([n, d]) => { this.note(N[n], d * temps * .95, "triangle", .1, t); t += d * temps; });
+  },
+};
+$("#son").addEventListener("click", () => {
+  Son.coupe = !Son.coupe;
+  $("#son").textContent = Son.coupe ? "🔇" : "🔊";
+  $("#son").setAttribute("aria-label", Son.coupe ? "Activer le son" : "Couper le son");
+});
+
+/* ============================ ACCUEIL ============================ */
+$("#titre-accueil").innerHTML = `Joyeux anniversaire<br>${echapper(CONFIG.prenom)}&nbsp;!`;
+document.title = `Le gâteau de ${CONFIG.prenom}`;
+$("#btn-commencer").addEventListener("click", () => { Son.init(); Son.victoire(); afficher("ecran-jeu"); Attrape.preparer(); });
+
+function echapper(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+
+/* ===================== ÉTAPE 1 : ATTRAPER ===================== */
+const RECETTE = [
+  { id: "oeuf",    emoji: "🥚", nom: "œufs",     besoin: 3 },
+  { id: "farine",  emoji: "🌾", nom: "farine",   besoin: 3 },
+  { id: "sucre",   emoji: "🍬", nom: "sucre",    besoin: 2 },
+  { id: "beurre",  emoji: "🧈", nom: "beurre",   besoin: 2 },
+  { id: "choco",   emoji: "🍫", nom: "chocolat", besoin: 3 },
+  { id: "fraise",  emoji: "🍓", nom: "fraises",  besoin: 3 },
+];
+const INTRUS = [
+  { emoji: "🧦", msg: "Une chaussette ?!" },
+  { emoji: "🐟", msg: "Du poisson dans un gâteau ?" },
+  { emoji: "🌶️", msg: "Aïe, ça pique !" },
+  { emoji: "🧅", msg: "Un oignon… non merci !" },
+  { emoji: "🥦", msg: "Le brocoli, ce sera pour demain !" },
+];
+
+const Attrape = {
+  canvas: $("#jeu-canvas"), ctx: null,
+  W: 0, H: 0, objets: [], textes: [], compte: {},
+  bol: { x: 0, cible: 0, larg: 100, secousse: 0 },
+  enCours: false, fini: false, dernier: 0, prochain: 0, touches: { g: false, d: false },
+
+  preparer() {
+    this.ctx = this.canvas.getContext("2d");
+    this.redimensionner();
+    RECETTE.forEach((r) => (this.compte[r.id] = 0));
+    this.objets = []; this.textes = []; this.fini = false;
+    this.bol.x = this.bol.cible = this.W / 2;
+    $("#liste-recette").innerHTML = RECETTE.map((r) => `<span><span class="emoji">${r.emoji}</span> ${r.besoin} ${r.nom}</span>`).join("");
+    $("#liste-intrus").textContent = INTRUS.map((i) => i.emoji).join(" ");
+    $("#consignes").hidden = false;
+    $("#message-jeu").textContent = "";
+    this.majRecette();
+    this.dessiner();
+  },
+
+  demarrer() {
+    $("#consignes").hidden = true;
+    this.enCours = true;
+    this.dernier = performance.now();
+    this.prochain = 400;
+    requestAnimationFrame((t) => this.boucle(t));
+  },
+
+  redimensionner() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    this.W = window.innerWidth; this.H = window.innerHeight;
+    this.canvas.width = this.W * dpr; this.canvas.height = this.H * dpr;
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.taille = Math.max(36, Math.min(54, this.W * .11));
+    this.bol.larg = Math.max(96, Math.min(150, this.W * .3));
+    this.bol.y = this.H - Math.max(60, this.H * .1);
+  },
+
+  total() { return RECETTE.reduce((s, r) => s + r.besoin, 0); },
+  progres() { return RECETTE.reduce((s, r) => s + Math.min(this.compte[r.id], r.besoin), 0) / this.total(); },
+
+  majRecette(popId) {
+    $("#recette").innerHTML = RECETTE.map((r) => {
+      const n = Math.min(this.compte[r.id], r.besoin), ok = n >= r.besoin;
+      return `<div class="ingr ${ok ? "ok" : ""} ${popId === r.id ? "pop" : ""}"><span class="emoji">${r.emoji}</span>${ok ? "✓" : n + "/" + r.besoin}</div>`;
+    }).join("");
+    if (popId) setTimeout(() => document.querySelectorAll(".ingr.pop").forEach((e) => e.classList.remove("pop")), 200);
+  },
+
+  message(txt) {
+    const m = $("#message-jeu");
+    m.textContent = txt;
+    clearTimeout(this._msg);
+    this._msg = setTimeout(() => (m.textContent = ""), 1600);
+  },
+
+  generer() {
+    const p = this.progres();
+    const probaIntrus = .2 + p * .12;
+    let obj;
+    if (Math.random() < probaIntrus) {
+      const i = choisir(INTRUS);
+      obj = { type: "intrus", emoji: i.emoji, msg: i.msg };
+    } else {
+      const manquants = RECETTE.filter((r) => this.compte[r.id] < r.besoin);
+      const r = (manquants.length && Math.random() < .8) ? choisir(manquants) : choisir(RECETTE);
+      obj = { type: "ingr", emoji: r.emoji, id: r.id };
+    }
+    const s = this.taille;
+    obj.x = hasard(s / 2 + 4, this.W - s / 2 - 4);
+    obj.y = -s;
+    obj.v = (this.H / hasard(3.4, 4.2)) * (1 + p * .55);   // pixels par seconde
+    obj.rot = hasard(-.4, .4); obj.vrot = hasard(-1.5, 1.5);
+    this.objets.push(obj);
+  },
+
+  boucle(t) {
+    if (!this.enCours) return;
+    const dt = Math.min(.05, (t - this.dernier) / 1000);
+    this.dernier = t;
+    this.maj(dt);
+    this.dessiner();
+    requestAnimationFrame((t2) => this.boucle(t2));
+  },
+
+  maj(dt) {
+    // Apparition des objets
+    this.prochain -= dt * 1000;
+    if (this.prochain <= 0 && !this.fini) {
+      this.generer();
+      this.prochain = hasard(700, 1000) * (1 - this.progres() * .3);
+    }
+    // Saladier
+    const b = this.bol;
+    if (this.touches.g) b.cible -= 520 * dt;
+    if (this.touches.d) b.cible += 520 * dt;
+    b.cible = Math.max(b.larg / 2, Math.min(this.W - b.larg / 2, b.cible));
+    b.x += (b.cible - b.x) * Math.min(1, dt * 18);
+    b.secousse = Math.max(0, b.secousse - dt * 3);
+
+    const s = this.taille, haut = b.y - b.larg * .28;
+    for (const o of this.objets) {
+      o.y += o.v * dt; o.rot += o.vrot * dt;
+      if (!o.mort && o.y + s * .35 >= haut && o.y - s * .5 <= haut + 18 && Math.abs(o.x - b.x) < b.larg * .5) {
+        o.mort = true;
+        this.attraper(o);
+      }
+      if (o.y > this.H + s) o.mort = true;
+    }
+    this.objets = this.objets.filter((o) => !o.mort);
+    for (const tx of this.textes) { tx.y -= 40 * dt; tx.vie -= dt; }
+    this.textes = this.textes.filter((tx) => tx.vie > 0);
+  },
+
+  attraper(o) {
+    if (this.fini) return;
+    const b = this.bol;
+    if (o.type === "ingr") {
+      const r = RECETTE.find((x) => x.id === o.id);
+      if (this.compte[o.id] >= r.besoin) {
+        this.texte("Déjà assez !", "#8a5a40");
+        Son.pop();
+      } else {
+        this.compte[o.id]++;
+        this.texte(`+1 ${r.emoji}`, "#2e9a6a");
+        Son.attrape();
+        if (navigator.vibrate) navigator.vibrate(15);
+      }
+      this.majRecette(o.id);
+      if (this.progres() >= 1) this.gagner();
+    } else {
+      b.secousse = 1;
+      Son.rate();
+      if (navigator.vibrate) navigator.vibrate([40, 40, 40]);
+      const possedes = RECETTE.filter((r) => this.compte[r.id] > 0);
+      if (possedes.length) {
+        const r = choisir(possedes);
+        this.compte[r.id]--;
+        this.texte(`−1 ${r.emoji}`, "#d14b4b");
+        this.message(`${o.emoji} ${o.msg} Tu perds ${r.emoji}`);
+      } else {
+        this.message(`${o.emoji} ${o.msg}`);
+      }
+      this.majRecette();
+    }
+  },
+
+  texte(txt, couleur) { this.textes.push({ txt, couleur, x: this.bol.x, y: this.bol.y - this.bol.larg * .5, vie: .9 }); },
+
+  async gagner() {
+    if (this.fini) return;
+    this.fini = true;
+    Son.victoire();
+    this.message("Tous les ingrédients sont là ! 🎉");
+    await pause(1600);
+    this.enCours = false;
+    afficher("ecran-fouet");
+    Fouet.preparer();
+  },
+
+  dessiner() {
+    const c = this.ctx, s = this.taille, b = this.bol;
+    c.clearRect(0, 0, this.W, this.H);
+    // Plan de travail
+    c.fillStyle = "#f3d9bf";
+    c.fillRect(0, b.y + b.larg * .12, this.W, this.H);
+    c.fillStyle = "#e9c7a6";
+    c.fillRect(0, b.y + b.larg * .12, this.W, 6);
+
+    c.textAlign = "center"; c.textBaseline = "middle";
+    c.font = `${s}px ${getComputedStyle(document.documentElement).getPropertyValue("--emoji")}`;
+    for (const o of this.objets) {
+      c.save(); c.translate(o.x, o.y); c.rotate(o.rot);
+      c.fillText(o.emoji, 0, 0);
+      c.restore();
+    }
+    // Saladier (dessiné à la main pour être identique partout)
+    const dx = Math.sin(performance.now() / 30) * 8 * b.secousse;
+    c.save(); c.translate(b.x + dx, b.y);
+    const L = b.larg, Hb = L * .42;
+    c.fillStyle = "rgba(91,58,41,.15)";
+    c.beginPath(); c.ellipse(0, Hb * .62, L * .42, 8, 0, 0, Math.PI * 2); c.fill();
+    const grad = c.createLinearGradient(-L / 2, 0, L / 2, 0);
+    grad.addColorStop(0, "#d65a87"); grad.addColorStop(.5, "#f59bbb"); grad.addColorStop(1, "#d65a87");
+    c.fillStyle = grad;
+    c.beginPath();
+    c.moveTo(-L / 2, -Hb * .45);
+    c.quadraticCurveTo(-L * .48, Hb * .55, 0, Hb * .58);
+    c.quadraticCurveTo(L * .48, Hb * .55, L / 2, -Hb * .45);
+    c.closePath(); c.fill();
+    c.fillStyle = "#fbe3ec";
+    c.beginPath(); c.ellipse(0, -Hb * .45, L / 2, Hb * .18, 0, 0, Math.PI * 2); c.fill();
+    // contenu du saladier qui monte avec la progression
+    const p = this.progres();
+    if (p > 0) {
+      c.fillStyle = "#c98b5e";
+      c.beginPath(); c.ellipse(0, -Hb * .42, L / 2 * (.5 + .42 * p), Hb * .12 * (.5 + .5 * p), 0, 0, Math.PI * 2); c.fill();
+    }
+    c.fillStyle = "rgba(255,255,255,.55)";
+    c.beginPath(); c.ellipse(-L * .25, Hb * .05, L * .05, Hb * .22, -.4, 0, Math.PI * 2); c.fill();
+    c.restore();
+
+    c.font = `800 22px Nunito, sans-serif`;
+    for (const tx of this.textes) {
+      c.globalAlpha = Math.max(0, tx.vie / .9);
+      c.fillStyle = tx.couleur; c.fillText(tx.txt, tx.x, tx.y);
+    }
+    c.globalAlpha = 1;
+  },
+};
+
+$("#btn-jouer").addEventListener("click", () => { Son.init(); Attrape.demarrer(); });
+Attrape.canvas.addEventListener("pointerdown", (e) => { Attrape.bol.cible = e.clientX; });
+Attrape.canvas.addEventListener("pointermove", (e) => { if (e.pointerType === "mouse" || e.buttons || e.pressure > 0) Attrape.bol.cible = e.clientX; });
+window.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowLeft") Attrape.touches.g = true;
+  if (e.key === "ArrowRight") Attrape.touches.d = true;
+});
+window.addEventListener("keyup", (e) => {
+  if (e.key === "ArrowLeft") Attrape.touches.g = false;
+  if (e.key === "ArrowRight") Attrape.touches.d = false;
+});
+window.addEventListener("resize", () => { if (Attrape.ctx) { Attrape.redimensionner(); Attrape.dessiner(); } redimConfettis(); });
+
+/* ===================== ÉTAPE 2 : FOUETTER ===================== */
+const Fouet = {
+  niveau: 0, fini: false, actif: false, dernier: 0,
+  preparer() {
+    this.niveau = 0; this.fini = false; this.actif = false;
+    $("#jauge-fouet").style.width = "0%";
+    $("#btn-four").hidden = true;
+    $("#message-fouet").innerHTML = "&nbsp;";
+    $("#saladier").textContent = "🥣";
+  },
+  taper(e) {
+    if (this.fini) return;
+    Son.init();
+    this.niveau = Math.min(100, this.niveau + 6);
+    if (!this.actif) { this.actif = true; this.dernier = performance.now(); requestAnimationFrame((t) => this.boucle(t)); }
+    const f = $("#fouet");
+    f.classList.toggle("tourne");
+    Son.pop();
+    if (navigator.vibrate) navigator.vibrate(8);
+    // éclaboussures
+    const zone = $("#zone-fouet");
+    for (let i = 0; i < 2; i++) {
+      const sp = document.createElement("span");
+      sp.className = "eclaboussure"; sp.textContent = choisir(["💧", "✨", "🤎"]);
+      sp.style.left = hasard(30, 60) + "%"; sp.style.top = hasard(25, 45) + "%";
+      sp.style.setProperty("--dx", hasard(-90, 90) + "px");
+      sp.style.setProperty("--dy", hasard(-90, -20) + "px");
+      zone.appendChild(sp);
+      setTimeout(() => sp.remove(), 700);
+    }
+    this.majAffichage();
+    if (this.niveau >= 100) this.terminer();
+  },
+  boucle(t) {
+    if (this.fini) return;
+    const dt = Math.min(.05, (t - this.dernier) / 1000); this.dernier = t;
+    this.niveau = Math.max(0, this.niveau - dt * 5);   // la pâte « retombe » doucement
+    this.majAffichage();
+    requestAnimationFrame((t2) => this.boucle(t2));
+  },
+  majAffichage() {
+    $("#jauge-fouet").style.width = this.niveau + "%";
+    const m = $("#message-fouet");
+    if (this.niveau < 30) m.textContent = "Allez, plus vite !";
+    else if (this.niveau < 65) m.textContent = "C'est bien, continue !";
+    else if (this.niveau < 100) m.textContent = "Encore un petit effort !";
+  },
+  terminer() {
+    this.fini = true;
+    Son.victoire();
+    $("#message-fouet").textContent = "Parfait, la pâte est bien lisse ! 👌";
+    $("#btn-four").hidden = false;
+  },
+};
+$("#zone-fouet").addEventListener("pointerdown", (e) => { e.preventDefault(); Fouet.taper(e); });
+$("#btn-four").addEventListener("click", () => { afficher("ecran-four"); Four.preparer(); });
+
+/* ===================== ÉTAPE 3 : CUISSON ===================== */
+const Four = {
+  valeur: 0, actif: false, echecs: 0, dernier: 0, duree: 5.5,
+  zone: [56, 76],
+  preparer() {
+    $("#btn-bougies").hidden = true;
+    $("#btn-sortir").hidden = false;
+    this.lancer();
+  },
+  lancer() {
+    // La zone dorée s'élargit après chaque échec pour rester sympa
+    const marge = Math.min(10, this.echecs * 4);
+    this.zone = [56 - marge, 76 + marge / 2];
+    const zd = $("#zone-doree");
+    zd.style.left = this.zone[0] + "%"; zd.style.width = (this.zone[1] - this.zone[0]) + "%";
+    this.valeur = 0; this.actif = true;
+    $("#message-four").innerHTML = "Ça chauffe… 🔥";
+    this.dernier = performance.now();
+    requestAnimationFrame((t) => this.boucle(t));
+  },
+  boucle(t) {
+    if (!this.actif) return;
+    const dt = Math.min(.05, (t - this.dernier) / 1000); this.dernier = t;
+    this.valeur += (100 / this.duree) * dt;
+    if (this.valeur >= 100) { this.valeur = 100; this.afficher(); this.sortir(); return; }
+    this.afficher();
+    requestAnimationFrame((t2) => this.boucle(t2));
+  },
+  couleur(v) {
+    const pal = [[0, [243, 225, 176]], [45, [236, 208, 138]], [65, [217, 164, 65]], [82, [165, 95, 36]], [100, [61, 36, 22]]];
+    for (let i = 1; i < pal.length; i++) {
+      if (v <= pal[i][0]) {
+        const [a, ca] = pal[i - 1], [b, cb] = pal[i], k = (v - a) / (b - a);
+        return `rgb(${ca.map((x, j) => Math.round(x + (cb[j] - x) * k)).join(",")})`;
+      }
+    }
+    return "rgb(61,36,22)";
+  },
+  afficher() {
+    $("#curseur-cuisson").style.left = this.valeur + "%";
+    const g = $("#gateau-four");
+    g.style.background = this.couleur(this.valeur);
+    g.style.setProperty("--levee", (.55 + Math.min(1, this.valeur / 60) * .45).toFixed(3));
+    document.querySelector(".vitre").style.setProperty("--chaleur", (.3 + this.valeur / 140).toFixed(2));
+  },
+  async sortir() {
+    if (!this.actif) return;
+    this.actif = false;
+    const v = this.valeur, m = $("#message-four");
+    if (v >= this.zone[0] && v <= this.zone[1]) {
+      Son.victoire();
+      m.textContent = "Doré à la perfection ! 😍";
+      $("#btn-sortir").hidden = true;
+      $("#btn-bougies").hidden = false;
+      return;
+    }
+    this.echecs++;
+    Son.rate();
+    m.textContent = v < this.zone[0] ? "Oups, c'est encore tout mou ! On recommence…" : "Aïe, c'est brûlé ! 🔥 On recommence…";
+    $("#btn-sortir").disabled = true;
+    await pause(1800);
+    $("#btn-sortir").disabled = false;
+    this.lancer();
+  },
+};
+$("#btn-sortir").addEventListener("click", () => Four.sortir());
+$("#btn-bougies").addEventListener("click", () => { afficher("ecran-bougies"); Bougies.preparer(); });
+
+/* ===================== ÉTAPE 4 : BOUGIES ===================== */
+const Bougies = {
+  restantes: 0, micro: null, fini: false,
+  preparer() {
+    const n = Math.max(1, Math.min(12, CONFIG.bougies | 0));
+    const cont = $("#bougies");
+    cont.innerHTML = "";
+    for (let i = 0; i < n; i++) {
+      const b = document.createElement("button");
+      b.className = "bougie"; b.setAttribute("aria-label", "Souffler la bougie");
+      b.style.height = (40 + (i % 2) * 8) + "px";
+      b.innerHTML = '<span class="flamme"></span>';
+      b.addEventListener("pointerdown", (e) => { e.preventDefault(); this.eteindre(b); });
+      cont.appendChild(b);
+    }
+    this.restantes = n; this.fini = false;
+    $("#btn-cadeau").hidden = true;
+    $("#btn-micro").hidden = false;
+    $("#micro-info").innerHTML = "&nbsp;";
+    Son.joyeux();
+  },
+  eteindre(b) {
+    if (b.classList.contains("eteinte")) return;
+    b.classList.add("eteinte");
+    const f = document.createElement("span"); f.className = "fumee"; b.appendChild(f);
+    setTimeout(() => f.remove(), 1200);
+    Son.souffle();
+    this.restantes--;
+    if (this.restantes <= 0) this.terminer();
+  },
+  async activerMicro() {
+    const info = $("#micro-info");
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      info.textContent = "Micro indisponible ici : touche les flammes 👆"; return;
+    }
+    try {
+      const flux = await navigator.mediaDevices.getUserMedia({ audio: true });
+      Son.init();
+      const ctx = Son.ctx || new AudioContext();
+      if (ctx.state === "suspended") await ctx.resume();
+      const src = ctx.createMediaStreamSource(flux);
+      const an = ctx.createAnalyser(); an.fftSize = 1024;
+      src.connect(an);
+      const data = new Uint8Array(an.fftSize);
+      this.micro = { flux, an, data };
+      $("#btn-micro").hidden = true;
+      info.textContent = "Vas-y, souffle fort ! 🌬️";
+      let dernierSouffle = 0, fort = 0;
+      const ecouter = (t) => {
+        if (this.fini || !this.micro) return;
+        an.getByteTimeDomainData(data);
+        let somme = 0;
+        for (let i = 0; i < data.length; i++) { const v = (data[i] - 128) / 128; somme += v * v; }
+        const rms = Math.sqrt(somme / data.length);
+        fort = rms > .12 ? fort + 1 : 0;
+        if (fort >= 3 && t - dernierSouffle > 220) {
+          const allumees = [...document.querySelectorAll(".bougie:not(.eteinte)")];
+          if (allumees.length) this.eteindre(choisir(allumees));
+          dernierSouffle = t;
+        }
+        requestAnimationFrame(ecouter);
+      };
+      requestAnimationFrame(ecouter);
+    } catch (e) {
+      info.textContent = "Pas de micro ? Pas grave : touche les flammes 👆";
+    }
+  },
+  couperMicro() {
+    if (this.micro) { this.micro.flux.getTracks().forEach((t) => t.stop()); this.micro = null; }
+  },
+  terminer() {
+    this.fini = true;
+    this.couperMicro();
+    Son.victoire();
+    $("#micro-info").textContent = "Ton vœu va se réaliser… ✨";
+    $("#btn-micro").hidden = true;
+    $("#btn-cadeau").hidden = false;
+    lancerConfettis(80);
+  },
+};
+$("#btn-micro").addEventListener("click", () => Bougies.activerMicro());
+$("#btn-cadeau").addEventListener("click", () => afficher("ecran-cadeau"));
+
+/* ===================== LE CADEAU ===================== */
+function texteQR() {
+  if (CONFIG.qrContenu && CONFIG.qrContenu.trim()) return CONFIG.qrContenu.trim();
+  return [
+    "BON CADEAU",
+    CONFIG.titreBon,
+    `Offert à ${CONFIG.prenom} pour son anniversaire`,
+    CONFIG.code && `Code : ${CONFIG.code}`,
+    CONFIG.validite,
+    CONFIG.signature,
+  ].filter(Boolean).join("\n");
+}
+
+function creerQR() {
+  const qr = qrcode(0, "M");
+  qr.addData(texteQR(), "Byte");
+  qr.make();
+  return qr;
+}
+
+// Dessine le QR code (avec sa marge blanche obligatoire) sur un contexte 2D
+function dessinerQR(ctx, qr, x, y, taille) {
+  const n = qr.getModuleCount(), marge = 4, cellule = taille / (n + marge * 2);
+  ctx.fillStyle = "#fff"; ctx.fillRect(x, y, taille, taille);
+  ctx.fillStyle = "#2b1a12";
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+    if (qr.isDark(r, c)) {
+      ctx.fillRect(Math.floor(x + (c + marge) * cellule), Math.floor(y + (r + marge) * cellule),
+                   Math.ceil(cellule), Math.ceil(cellule));
+    }
+  }
+}
+
+function remplirBon() {
+  $("#bon-titre").textContent = CONFIG.titreBon;
+  $("#bon-pour").textContent = `Offert à ${CONFIG.prenom} pour son anniversaire`;
+  $("#bon-details").textContent = CONFIG.details;
+  $("#bon-code").textContent = CONFIG.code ? `Code : ${CONFIG.code}` : "";
+  $("#bon-validite").textContent = CONFIG.validite;
+  $("#bon-signature").textContent = CONFIG.signature;
+  const qr = creerQR(), n = qr.getModuleCount();
+  const cv = $("#qr"), echelle = 8, taille = (n + 8) * echelle;
+  cv.width = cv.height = taille;
+  dessinerQR(cv.getContext("2d"), qr, 0, 0, taille);
+}
+
+$("#cadeau").addEventListener("click", async () => {
+  const c = $("#cadeau");
+  if (c.classList.contains("secoue")) return;
+  c.classList.add("secoue");
+  Son.init();
+  Son.note(400, .15, "triangle", .1); Son.note(500, .15, "triangle", .1, .25);
+  await pause(1000);
+  c.classList.remove("secoue");
+  remplirBon();
+  afficher("ecran-bon");
+  Son.victoire();
+  lancerConfettis(220);
+  setTimeout(() => lancerConfettis(120), 900);
+});
+
+$("#btn-rejouer").addEventListener("click", () => { afficher("ecran-accueil"); });
+
+/* ---------------------- Image téléchargeable du bon ---------------------- */
+function lignes(ctx, texte, largeurMax) {
+  const mots = texte.split(" "), res = []; let ligne = "";
+  for (const m of mots) {
+    const essai = ligne ? ligne + " " + m : m;
+    if (ctx.measureText(essai).width > largeurMax && ligne) { res.push(ligne); ligne = m; } else ligne = essai;
+  }
+  if (ligne) res.push(ligne);
+  return res;
+}
+function rectArrondi(ctx, x, y, w, h, r) {
+  ctx.beginPath(); ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+
+async function imageDuBon() {
+  try { await Promise.all([document.fonts.load('80px "Pacifico"'), document.fonts.load('800 40px "Nunito"'), document.fonts.load('400 40px "Nunito"')]); } catch (e) {}
+  const W = 1080, H = 1500, cv = document.createElement("canvas");
+  cv.width = W; cv.height = H;
+  const c = cv.getContext("2d");
+  const emo = getComputedStyle(document.documentElement).getPropertyValue("--emoji");
+  // fond
+  c.fillStyle = "#fff4e8"; c.fillRect(0, 0, W, H);
+  c.fillStyle = "#ffe1ea";
+  [[120, 120, 160], [980, 1380, 180], [960, 160, 90], [90, 1300, 80]].forEach(([x, y, r]) => { c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill(); });
+  // carte
+  rectArrondi(c, 70, 70, W - 140, H - 140, 50);
+  c.fillStyle = "#fffdf9"; c.fill();
+  c.setLineDash([26, 18]); c.lineWidth = 8; c.strokeStyle = "#ef7fa6"; c.stroke(); c.setLineDash([]);
+
+  c.textAlign = "center"; c.textBaseline = "alphabetic";
+  let y = 210;
+  // étiquette
+  c.font = '800 38px Nunito, sans-serif';
+  const et = "B O N   C A D E A U", lw = c.measureText(et).width + 80;
+  rectArrondi(c, W / 2 - lw / 2, y - 52, lw, 74, 37); c.fillStyle = "#ef7fa6"; c.fill();
+  c.fillStyle = "#fff"; c.fillText(et, W / 2, y);
+  y += 130;
+  c.font = '84px Pacifico, cursive'; c.fillStyle = "#d65a87";
+  for (const l of lignes(c, CONFIG.titreBon, W - 260)) { c.fillText(l, W / 2, y); y += 100; }
+  c.font = '800 40px Nunito, sans-serif'; c.fillStyle = "#5b3a29";
+  for (const l of lignes(c, `Offert à ${CONFIG.prenom} pour son anniversaire`, W - 260)) { c.fillText(l, W / 2, y); y += 52; }
+  y += 10;
+  c.font = '400 34px Nunito, sans-serif';
+  for (const l of lignes(c, CONFIG.details, W - 300)) { c.fillText(l, W / 2, y); y += 46; }
+  y += 30;
+  // QR
+  const qr = creerQR(), tq = 470;
+  dessinerQR(c, qr, (W - tq) / 2, y, tq);
+  y += tq + 70;
+  c.font = '800 42px Nunito, sans-serif'; c.fillStyle = "#5b3a29";
+  if (CONFIG.code) { c.fillText(`Code : ${CONFIG.code}`, W / 2, y); y += 56; }
+  c.font = '400 32px Nunito, sans-serif'; c.globalAlpha = .75;
+  if (CONFIG.validite) { c.fillText(CONFIG.validite, W / 2, y); y += 50; }
+  c.globalAlpha = 1;
+  c.font = '52px Pacifico, cursive'; c.fillStyle = "#8a5a40";
+  // la signature peut contenir un emoji : on combine les polices
+  c.font = `52px Pacifico, ${emo}`;
+  c.fillText(CONFIG.signature, W / 2, Math.max(y + 40, H - 150));
+  c.font = `70px ${emo}`;
+  c.fillText("🎂", 200, H - 140); c.fillText("🧁", W - 200, H - 140);
+  return cv;
+}
+
+$("#btn-telecharger").addEventListener("click", async () => {
+  const cv = await imageDuBon();
+  const nom = "bon-cadeau-atelier-patisserie.png";
+  cv.toBlob(async (blob) => {
+    if (!blob) return;
+    const fichier = new File([blob], nom, { type: "image/png" });
+    // Sur téléphone : feuille de partage (permet « Enregistrer l'image »)
+    if (navigator.canShare && navigator.canShare({ files: [fichier] })) {
+      try { await navigator.share({ files: [fichier], title: "Mon bon cadeau" }); return; }
+      catch (e) { if (e.name === "AbortError") return; }
+    }
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = nom;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  }, "image/png");
+});
+
+/* ============================ CONFETTIS ============================ */
+const Conf = { cv: $("#confettis"), ctx: null, parts: [], actif: false };
+Conf.ctx = Conf.cv.getContext("2d");
+function redimConfettis() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  Conf.cv.width = innerWidth * dpr; Conf.cv.height = innerHeight * dpr;
+  Conf.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+redimConfettis();
+function lancerConfettis(n) {
+  const couleurs = ["#ef7fa6", "#e9b44c", "#8fd3b6", "#7fb8ef", "#f6d365", "#c79bf2"];
+  for (let i = 0; i < n; i++) {
+    Conf.parts.push({
+      x: innerWidth / 2 + hasard(-40, 40), y: innerHeight * .35,
+      vx: hasard(-1, 1) * hasard(150, 520), vy: hasard(-820, -260),
+      w: hasard(6, 12), h: hasard(10, 18), rot: hasard(0, 6), vr: hasard(-10, 10),
+      c: choisir(couleurs), vie: hasard(2.5, 4),
+    });
+  }
+  if (!Conf.actif) { Conf.actif = true; Conf.dernier = performance.now(); requestAnimationFrame(animerConfettis); }
+}
+function animerConfettis(t) {
+  const dt = Math.min(.05, (t - Conf.dernier) / 1000); Conf.dernier = t;
+  const c = Conf.ctx;
+  c.clearRect(0, 0, innerWidth, innerHeight);
+  for (const p of Conf.parts) {
+    p.vy += 900 * dt; p.vx *= (1 - 1.2 * dt); p.vy *= (1 - .8 * dt);
+    p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vr * dt; p.vie -= dt;
+    c.save(); c.translate(p.x, p.y); c.rotate(p.rot);
+    c.globalAlpha = Math.min(1, p.vie);
+    c.fillStyle = p.c; c.fillRect(-p.w / 2, -p.h / 2, p.w, p.h * Math.abs(Math.cos(p.rot * 2)));
+    c.restore();
+  }
+  Conf.parts = Conf.parts.filter((p) => p.vie > 0 && p.y < innerHeight + 40);
+  if (Conf.parts.length) requestAnimationFrame(animerConfettis);
+  else { Conf.actif = false; c.clearRect(0, 0, innerWidth, innerHeight); }
+}
+
+/* ---- Raccourci de test : ajouter ?fin à l'adresse pour voir directement le bon ---- */
+if (new URLSearchParams(location.search).has("fin")) { remplirBon(); afficher("ecran-bon"); }
+</script>
+</body>
+</html>
