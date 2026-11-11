@@ -1,62 +1,15 @@
 "use strict";
 /* =====================================================================
-   La pâtisserie : les clients commandent au comptoir, on prépare,
-   on cuit, on décore et on sert avant qu'ils ne perdent patience.
+   La cuisine : les clients commandent au comptoir, on prépare, on cuit,
+   on décore et on sert avant qu'ils ne perdent patience.
    ===================================================================== */
 
-const EMOJI_FONT = '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
-
-/* ----------------------------- Données ----------------------------- */
-const ING = {
-  farine:    { emoji: "🌾", nom: "la farine" },
-  oeuf:      { emoji: "🥚", nom: "les œufs" },
-  sucre:     { emoji: "🍬", nom: "le sucre" },
-  beurre:    { emoji: "🧈", nom: "le beurre" },
-  chocolat:  { emoji: "🍫", nom: "le chocolat" },
-  fraise:    { emoji: "🍓", nom: "les fraises" },
-  chantilly: { emoji: "🍦", nom: "la chantilly" },
-};
-const DECORS = ["fraise", "chantilly"];   // ce qui se pose sur un gâteau cuit
-
-const PATES = {
-  cookie:  { nom: "la pâte à cookies", ingr: ["farine", "beurre", "chocolat"], couleur: "#a8744c", cuit: "cookie" },
-  genoise: { nom: "la pâte à génoise", ingr: ["farine", "oeuf", "sucre"],      couleur: "#f2d77e", cuit: "genoise" },
-  sablee:  { nom: "la pâte sablée",    ingr: ["farine", "beurre", "sucre"],    couleur: "#e6c79b", cuit: "fond" },
-};
-const CUITS = {
-  cookie:  { nom: "les cookies" },
-  genoise: { nom: "la génoise" },
-  fond:    { nom: "le fond de tarte" },
-};
-const RECETTES = {
-  cookie:   { nom: "Cookies",           art: "les ", emoji: "🍪", pate: "cookie",  decors: [],                     patience: 80,  debloque: 0 },
-  cupcake:  { nom: "Cupcake",           art: "le ",  emoji: "🧁", pate: "genoise", decors: ["chantilly"],          patience: 95,  debloque: 1 },
-  tarte:    { nom: "Tarte aux fraises", art: "la ",  emoji: "🥧", pate: "sablee",  decors: ["fraise"],             patience: 95,  debloque: 3 },
-  fraisier: { nom: "Fraisier",          art: "le ",  emoji: "🍰", pate: "genoise", decors: ["chantilly", "fraise"], patience: 120, debloque: 5 },
-};
-const ANIMAUX = ["🐻", "🐰", "🦊", "🐱", "🐼", "🐨", "🐸", "🐷", "🐶", "🐯", "🦁", "🐮", "🐹", "🐧"];
-
-/* Plan de la cuisine (la ligne 0 est le comptoir, les clients sont au-dessus)
-   K comptoir · B saladier · O four · A plan de travail · T poubelle · # meuble
-   Caisses : F farine, E œufs, S sucre, U beurre, C chocolat, R fraises, H chantilly */
-const PLAN = [
-  "KKKKKKK",
-  ".......",
-  "F.B.B.O",
-  "E.....O",
-  "S.A.A.#",
-  "U.....#",
-  "......T",
-  "CRH####",
-];
-const CAISSES = { F: "farine", E: "oeuf", S: "sucre", U: "beurre", C: "chocolat", R: "fraise", H: "chantilly" };
-const DECO_MEUBLES = { "4,6": "🌷", "5,6": "☕", "7,3": "🍯", "7,4": "🧺", "7,5": "🥖", "7,6": "🍋" };
-const COLS = PLAN[0].length, LIGNES = PLAN.length, ZONE = 2.3;   // ZONE = hauteur (en cases) de la salle clients
+const COLS = PLAN[0].length, LIGNES = PLAN.length, ZONE = 1.65;  // ZONE = hauteur (en cases) de la salle clients
 const PLACES = [1, 3, 5];                                         // colonnes où se placent les clients
 const VITESSE = 4.6;                                              // cases par seconde
 const DUREE_MELANGE = 2.2, DUREE_CUISSON = 6, DELAI_BRULE = 13;   // secondes
 
-/* ----------------------------- Utilitaires ----------------------------- */
+/* ----------------------------- Règles ----------------------------- */
 const contient = (grand, petit) => {     // petit ⊆ grand (multiensembles)
   const reste = [...grand];
   for (const x of petit) { const i = reste.indexOf(x); if (i < 0) return false; reste.splice(i, 1); }
@@ -64,97 +17,130 @@ const contient = (grand, petit) => {     // petit ⊆ grand (multiensembles)
 };
 const memeEnsemble = (a, b) => a.length === b.length && contient(a, b);
 const sauf = (grand, petit) => { const r = [...grand]; for (const x of petit) { const i = r.indexOf(x); if (i >= 0) r.splice(i, 1); } return r; };
-const emojis = (ids) => ids.map((i) => ING[i].emoji).join(" ");
-const hasardEntre = (a, b) => a + Math.random() * (b - a);
-const auHasard = (t) => t[Math.floor(Math.random() * t.length)];
+const listeNoms = (ids) => ids.map((i) => ING[i].art).join(" et ");
 const majuscule = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+const cuitDe = (rec) => PATES[RECETTES[rec].pate].cuit;
 
 function recetteDe(o) {
   if (!o || o.type !== "cuit") return null;
-  for (const [k, r] of Object.entries(RECETTES)) {
-    if (PATES[r.pate].cuit === o.id && memeEnsemble(r.decors, o.decors)) return k;
-  }
+  for (const [k, r] of Object.entries(RECETTES)) if (PATES[r.pate].cuit === o.id && memeEnsemble(r.decors, o.decors)) return k;
   return null;
 }
-function peutDecorer(o, d) {
+function peutDecorer(o, d, recettes) {
   return o && o.type === "cuit" && !o.decors.includes(d) &&
-    Object.values(RECETTES).some((r) => PATES[r.pate].cuit === o.id && r.decors.includes(d) && contient(r.decors, o.decors));
+    recettes.some((k) => cuitDe(k) === o.id && RECETTES[k].decors.includes(d) && contient(RECETTES[k].decors, o.decors));
 }
-function aDecorer(o) {
-  return o && o.type === "cuit" && Object.values(RECETTES).some((r) =>
-    PATES[r.pate].cuit === o.id && r.decors.length > o.decors.length && contient(r.decors, o.decors));
+function aDecorer(o, recettes) {
+  return o && o.type === "cuit" && recettes.some((k) => cuitDe(k) === o.id && RECETTES[k].decors.length > o.decors.length && contient(RECETTES[k].decors, o.decors));
 }
-function pateComplete(contenu) {
-  return Object.keys(PATES).find((p) => memeEnsemble(PATES[p].ingr, contenu)) || null;
-}
+function pateComplete(contenu) { return Object.keys(PATES).find((p) => memeEnsemble(PATES[p].ingr, contenu)) || null; }
 function nomObjet(o) {
   if (!o) return "";
-  if (o.type === "ingr") return ING[o.id].nom;
+  if (o.type === "ingr") return ING[o.id].art;
   if (o.type === "pate") return PATES[o.id].nom;
   if (o.type === "brule") return "un gâteau brûlé";
   const r = recetteDe(o);
-  if (r && (RECETTES[r].decors.length || o.id === "cookie")) return RECETTES[r].art + RECETTES[r].nom.toLowerCase();
-  return CUITS[o.id].nom + (o.decors.length ? " (" + emojis(o.decors) + ")" : "");
+  if (r) return RECETTES[r].art + RECETTES[r].nom.toLowerCase();
+  return CUITS[o.id].nom;
+}
+
+/* Dessin d'un objet (ingrédient, pâte, gâteau…) centré en (x, y) */
+function dessinerObjet(c, o, x, y, s) {
+  if (o.type === "ingr") return dessinerImage(c, ING[o.id].img, x, y, s);
+  if (o.type === "pate") return dessinerImage(c, PATES[o.id].img, x, y, s);
+  if (o.type === "brule") return dessinerImage(c, "brule", x, y, s);
+  const r = recetteDe(o);
+  if (r) return dessinerImage(c, RECETTES[r].img, x, y, s);
+  dessinerImage(c, CUITS[o.id].img, x, y, s);
+  o.decors.forEach((d, i) => dessinerImage(c, ING[d].img, x + (i - (o.decors.length - 1) / 2) * s * .42 + s * .12, y - s * .24, s * .5));
 }
 
 /* ============================== LE JEU ============================== */
 const Cuisine = {
-  cv: null, ctx: null, W: 0, H: 0, T: 40, ox: 0, oy: 0, gy: 0,
+  cv: null, ctx: null, W: 0, H: 0, T: 40, ox: 0, oy: 0, gy: 0, stations: null,
 
   init() {
-    this.cv = document.getElementById("cuisine");
+    this.cv = $("#cuisine");
     this.ctx = this.cv.getContext("2d");
     this.cv.addEventListener("pointerdown", (e) => this.toucher(e));
     const surRedim = () => { if (this.stations) { this.redim(); this.dessiner(); } };
     window.addEventListener("resize", surRedim);
-    if (window.ResizeObserver) new ResizeObserver(surRedim).observe(document.getElementById("zone-cuisine"));
-    document.addEventListener("visibilitychange", () => { if (document.hidden && this.enCours && !this.fini) this.mettreEnPause(true); });
-    document.getElementById("btn-pause").addEventListener("click", () => this.mettreEnPause(true));
-    document.getElementById("btn-reprendre").addEventListener("click", () => this.mettreEnPause(false));
-    document.getElementById("btn-ouvrir").addEventListener("click", () => { Son.init(); Son.cloche(); this.lancer(); });
-    document.getElementById("btn-fermer").addEventListener("click", () => this.quitter());
+    if (window.ResizeObserver) new ResizeObserver(surRedim).observe($("#zone-cuisine"));
+    document.addEventListener("visibilitychange", () => { if (document.hidden) this.mettreEnPause(true); });
+    $("#btn-pause").addEventListener("click", () => this.mettreEnPause(true));
+    $("#btn-reprendre").addEventListener("click", () => this.mettreEnPause(false));
+    $("#btn-quitter").addEventListener("click", () => { this.enCours = false; this.pause = false; $("#ov-pause").hidden = true; Semaine.afficher(); });
+    $("#btn-fleches").addEventListener("click", () => {
+      Progression.etat.fleches = !Progression.etat.fleches; Progression.sauver(); this.majBoutonFleches();
+    });
+    $("#btn-lancer-jour").addEventListener("click", () => { Son.init(); Son.cloche(); this.lancer(); });
+    $("#btn-fermer-recette").addEventListener("click", () => this.fermerRecette());
+    $("#ov-recette").addEventListener("click", (e) => { if (e.target.id === "ov-recette") this.fermerRecette(); });
+    $("#tickets").addEventListener("click", (e) => {
+      const t = e.target.closest(".ticket[data-recette]");
+      if (t) this.ouvrirRecette(t.dataset.recette);
+    });
+    $("#btn-jour-suivant").addEventListener("click", () => this.demarrerJour(this.jour + 1));
+    $("#btn-menu").addEventListener("click", () => { $("#ov-fin").hidden = true; Semaine.afficher(); });
+    $("#btn-fermer-boutique").addEventListener("click", () => { $("#ov-fin").hidden = true; Cadeau.afficher(); });
   },
 
-  /* ----------------------- Mise en place ----------------------- */
-  preparer() {
+  /* ----------------------- Mise en place d'un jour ----------------------- */
+  demarrerJour(i) {
+    this.jour = i;
+    this.J = JOURS[i];
+    this.recettes = this.J.recettes;
+    const actifs = new Set(["K", "T"]);
+    JOURS.slice(0, i + 1).forEach((j) => j.postes.forEach((p) => actifs.add(p)));
     this.stations = []; this.grille = [];
+    const compte = {};
     PLAN.forEach((ligne, r) => {
       this.grille.push([]);
       [...ligne].forEach((ch, c) => {
         let st = null;
+        compte[ch] = (compte[ch] || 0) + 1;
+        const id = "BOA".includes(ch) ? ch + compte[ch] : ch;
         if (ch === "K") st = { type: "comptoir" };
         else if (ch === "B") st = { type: "bol", contenu: [], etat: "vide", t: 0, pate: null };
         else if (ch === "O") st = { type: "four", objet: null, etat: null, t: 0, bip: 0 };
         else if (ch === "A") st = { type: "plan", objet: null };
         else if (ch === "T") st = { type: "poubelle" };
-        else if (ch === "#") st = { type: "meuble", deco: DECO_MEUBLES[r + "," + c] };
         else if (CAISSES[ch]) st = { type: "caisse", id: CAISSES[ch] };
+        else if (ch === "#") st = { type: "meuble", deco: DECO_MEUBLES[r + "," + c] };
+        if (st && st.type !== "meuble" && !actifs.has(id)) st = { type: "meuble" };
         if (st) { st.c = c; st.r = r; this.stations.push(st); }
         this.grille[r].push(st);
       });
     });
     this.joueur = { x: 3.5, y: 3.5, chemin: [], file: [], action: null, tenu: null, marche: 0, dir: 1, geste: 0 };
-    this.clients = []; this.effets = [];
-    this.servis = 0; this.partis = 0; this.pieces = 0;
-    this.objectif = Math.max(1, CONFIG.clientsAServir | 0);
-    this.facteur = Math.max(.3, +CONFIG.patience || 1);
-    this.tuto = true; this.fini = false; this.enCours = false; this.pause = false;
-    this.prochainClient = .8; this.temps = 0;
-    this.derniereRecette = null; this.recettesVues = new Set();
+    this.clients = []; this.effets = []; this.affectation = new Map(); this.attente = []; this.preparations = [];
+    this.servis = 0; this.partis = 0; this.pieces = 0; this.numeroClient = 0;
+    this.objectif = this.J.clients;
+    this.facteur = this.J.patience * Math.max(.3, +CONFIG.patience || 1);
+    this.facteurMax = this.facteur * 1.6;
+    this.decouverteFaite = false;
+    this.fini = false; this.enCours = false; this.pause = false;
+    this.prochainClient = .8; this.temps = 0; this.derniereRecette = null;
     this.message = null; this.indices = { stations: [], texte: "" }; this.tIndice = 0;
-    this.signatureBandeau = "";
-    document.getElementById("ov-intro").hidden = false;
-    document.getElementById("ov-pause").hidden = true;
-    document.getElementById("ov-fin").hidden = true;
-    document.getElementById("indice").textContent = "";
-    this.redim();
-    this.majHUD();
-    this.majBandeau();
-    this.dessiner();
+    this.sigTickets = "";
+
+    afficher("ecran-cuisine");
+    $("#hud-jour").textContent = `Jour ${i + 1}`;
+    $("#ov-pause").hidden = true; $("#ov-fin").hidden = true; $("#ov-recette").hidden = true;
+    $("#indice").textContent = "";
+    // fiche d'introduction du jour
+    $("#jour-titre").textContent = `Jour ${i + 1} · ${this.J.titre}`;
+    $("#jour-texte").textContent = this.J.texte;
+    $("#jour-regles").hidden = i !== 0;
+    $("#jour-fiche").innerHTML = htmlFiche(this.J.nouvelle, true);
+    $("#jour-objectif").textContent = this.objectif;
+    $("#ov-jour").hidden = false;
+    this.majBoutonFleches();
+    requestAnimationFrame(() => { this.redim(); this.majHUD(); this.majTickets(); this.dessiner(); });
   },
 
   lancer() {
-    document.getElementById("ov-intro").hidden = true;
+    $("#ov-jour").hidden = true;
     this.enCours = true; this.pause = false;
     this.dernier = performance.now();
     requestAnimationFrame((t) => this.boucle(t));
@@ -164,18 +150,34 @@ const Cuisine = {
     if (!this.enCours || this.fini) return;
     if (oui && !this.pause) {
       this.pause = true;
-      document.getElementById("livre").innerHTML = this.htmlRecettes(true);
-      document.getElementById("ov-pause").hidden = false;
+      $("#livre").innerHTML = this.recettes.map((k) => htmlFiche(k, false)).join("");
+      $("#ov-pause").hidden = false;
     } else if (!oui && this.pause) {
       this.pause = false;
-      document.getElementById("ov-pause").hidden = true;
+      $("#ov-pause").hidden = true; $("#ov-recette").hidden = true;
       this.dernier = performance.now();
       requestAnimationFrame((t) => this.boucle(t));
     }
   },
+  ouvrirRecette(k) {
+    if (!this.enCours || this.fini) return;
+    this.pauseAvantRecette = this.pause;
+    this.mettreEnPause(true);
+    $("#ov-pause").hidden = true;
+    $("#recette-fiche").innerHTML = htmlFiche(k, true);
+    $("#ov-recette").hidden = false;
+  },
+  fermerRecette() {
+    $("#ov-recette").hidden = true;
+    if (this.pauseAvantRecette) $("#ov-pause").hidden = false; else this.mettreEnPause(false);
+  },
+  majBoutonFleches() {
+    $("#btn-fleches").textContent = Progression.etat.fleches ? "💡 Flèches d'aide : oui" : "💡 Flèches d'aide : non";
+  },
 
   redim() {
-    const zone = document.getElementById("zone-cuisine").getBoundingClientRect();
+    const zone = $("#zone-cuisine").getBoundingClientRect();
+    if (!zone.width || !zone.height) return;
     const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
     this.W = zone.width; this.H = zone.height;
     this.cv.width = this.W * dpr; this.cv.height = this.H * dpr;
@@ -232,7 +234,7 @@ const Cuisine = {
   libre(c, r) { return r >= 0 && r < LIGNES && c >= 0 && c < COLS && PLAN[r][c] === "."; },
 
   /* ----------------------- Actions ----------------------- */
-  dire(txt, duree = 2.4) { this.message = { txt, t: duree }; this.afficherIndice(); },
+  dire(txt, duree = 2.6) { this.message = { txt, t: duree }; this.afficherIndice(); },
 
   interagir(st) {
     const j = this.joueur, t = j.tenu;
@@ -240,7 +242,7 @@ const Cuisine = {
     switch (st.type) {
       case "caisse":
         if (!t) { j.tenu = { type: "ingr", id: st.id }; Son.prendre(); return; }
-        if (t.type === "ingr" && t.id === st.id) { j.tenu = null; Son.poser(); this.dire(`Tu as reposé ${ING[st.id].nom} dans sa caisse.`); return; }
+        if (t.type === "ingr" && t.id === st.id) { j.tenu = null; Son.poser(); this.dire(`Tu as reposé ${ING[st.id].art} dans sa caisse.`); return; }
         return mainsPleines();
 
       case "bol":
@@ -251,17 +253,16 @@ const Cuisine = {
           st.etat = "vide"; st.contenu = []; st.pate = null; Son.prendre(); return;
         }
         if (!t) {
-          if (st.contenu.length) { j.tenu = { type: "ingr", id: st.contenu.pop() }; Son.prendre(); this.dire("Tu as repris le dernier ingrédient."); }
+          if (st.contenu.length) { j.tenu = { type: "ingr", id: st.contenu.pop() }; if (!st.contenu.length) st.etat = "vide"; Son.prendre(); this.dire("Tu as repris le dernier ingrédient."); }
           else { Son.erreur(); this.dire("Le saladier est vide : apporte-lui des ingrédients."); }
           return;
         }
-        if (t.type !== "ingr") { Son.erreur(); return this.dire(t.type === "pate" ? "Cette pâte est prête : direction le four 🔥" : "Ça ne va pas dans le saladier !"); }
-        if (DECORS.includes(t.id)) { Son.erreur(); return this.dire(`${majuscule(ING[t.id].nom)}, c'est pour décorer sur le plan de travail 🍽️`); }
+        if (t.type !== "ingr") { Son.erreur(); return this.dire(t.type === "pate" ? "Cette pâte est prête : direction le four !" : "Ça ne va pas dans le saladier !"); }
+        if (DECORS.includes(t.id)) { Son.erreur(); return this.dire(`${majuscule(ING[t.id].art)}, c'est pour décorer, sur le plan de travail.`); }
         if (!this.peutAjouter(st, t.id)) { Son.erreur(); return this.dire("Avec ce qu'il y a déjà dedans, ça ne fait aucune recette 🤔"); }
         st.contenu.push(t.id); j.tenu = null; Son.plouf();
         st.etat = "rempli";
-        const p = pateComplete(st.contenu);
-        if (p) { st.etat = "melange"; st.t = 0; st.pate = p; }
+        { const p = pateComplete(st.contenu); if (p) { st.etat = "melange"; st.t = 0; st.pate = p; } }
         return;
 
       case "four":
@@ -282,19 +283,16 @@ const Cuisine = {
           if (t && t.type === "cuit") { st.objet = t; j.tenu = null; Son.poser(); return; }
           Son.erreur();
           if (!t) return this.dire("Le plan de travail est vide.");
-          if (t.type === "ingr" && DECORS.includes(t.id)) return this.dire("Pose d'abord une génoise ou un fond de tarte sorti du four.");
-          if (t.type === "pate") return this.dire("Cette pâte doit d'abord cuire au four 🔥");
+          if (t.type === "ingr" && DECORS.includes(t.id)) return this.dire("Pose d'abord ici un gâteau sorti du four, puis décore-le.");
+          if (t.type === "pate") return this.dire("Cette pâte doit d'abord cuire au four.");
           return this.dire("Ça ne se pose pas ici.");
         }
         if (!t) { j.tenu = st.objet; st.objet = null; Son.prendre(); return; }
         if (t.type === "ingr" && DECORS.includes(t.id)) {
-          if (peutDecorer(st.objet, t.id)) {
+          if (peutDecorer(st.objet, t.id, this.recettes)) {
             st.objet.decors.push(t.id); j.tenu = null; Son.plouf();
             const r = recetteDe(st.objet);
-            if (r && RECETTES[r].decors.length) {
-              const encore = aDecorer(st.objet) ? " (ou continue de le décorer)" : "";
-              this.dire(`${RECETTES[r].emoji} ${RECETTES[r].nom} terminé !${encore}`);
-            }
+            if (r) this.dire(`${RECETTES[r].nom} : terminé ! ✨`);
             return;
           }
           Son.erreur(); return this.dire("Ça ne va pas sur ce gâteau.");
@@ -306,14 +304,14 @@ const Cuisine = {
         j.tenu = null; Son.jeter(); this.dire("Jeté ! 🗑️", 1.4); return;
 
       case "comptoir":
-        return this.servir(st);
+        return this.servir();
     }
   },
 
   peutAjouter(bol, id) {
     if (bol.etat === "melange" || bol.etat === "pret" || DECORS.includes(id)) return false;
     const essai = [...bol.contenu, id];
-    return Object.values(PATES).some((p) => contient(p.ingr, essai));
+    return this.recettes.some((k) => contient(PATES[RECETTES[k].pate].ingr, essai));
   },
 
   servir() {
@@ -321,7 +319,7 @@ const Cuisine = {
     if (!o) { Son.erreur(); return this.dire("Apporte un dessert terminé au comptoir pour servir."); }
     if (!rec) {
       Son.erreur();
-      if (aDecorer(o)) return this.dire("Il faut encore le décorer sur le plan de travail 🍓");
+      if (aDecorer(o, this.recettes)) return this.dire("Il faut encore le décorer sur le plan de travail.");
       return this.dire("Ce n'est pas encore un dessert terminé !");
     }
     const cands = this.clients.filter((c) => c.etat === "attend" && c.recette === rec)
@@ -335,15 +333,11 @@ const Cuisine = {
     this.pieces += pourboire;
     Son.caisse();
     if (navigator.vibrate) navigator.vibrate(30);
-    this.effets.push({ type: "texte", txt: `+${pourboire} 🪙`, x: cl.x + .5, y: -1.2, vie: 1.4, couleur: "#2e9a6a" });
-    for (let i = 0; i < 5; i++) this.effets.push({ type: "coeur", x: cl.x + .5 + hasardEntre(-.4, .4), y: -1, vx: hasardEntre(-.4, .4), vie: hasardEntre(.9, 1.5) });
-    if (this.tuto) {
-      this.tuto = false;
-      this.prochainClient = 2.5;
-      this.dire("Bravo, premier client servi ! 🎉 Les suivants arrivent…", 3.5);
-    } else {
-      this.dire(auHasard(["Merci ! 😋", "Délicieux ! 💖", "Un régal ! ✨", "Parfait ! 👌", "Miam ! 😍"]), 1.6);
-    }
+    this.effets.push({ type: "texte", txt: `+${pourboire}`, x: cl.x + .5, y: -.9, vie: 1.4, couleur: "#2e9a6a" });
+    for (let i = 0; i < 4; i++) this.effets.push({ type: "coeur", x: cl.x + .5 + hasard(-.4, .4), y: -.7, vx: hasard(-.4, .4), vie: hasard(.9, 1.5) });
+    this.dire(cl.decouverte && this.jour === 0
+      ? "Bravo, premier client servi ! 🎉 Les suivants arrivent…"
+      : choisir(["Merci ! 😋", "Délicieux ! 💖", "Un régal ! ✨", "Parfait ! 👌", "Miam ! 😍"]), cl.decouverte ? 3 : 1.6);
     this.majHUD();
     if (this.servis >= this.objectif) this.terminer();
   },
@@ -353,28 +347,20 @@ const Cuisine = {
     const prises = new Set(this.clients.filter((c) => c.etat !== "part").map((c) => c.place));
     const libres = [0, 1, 2].filter((p) => !prises.has(p));
     if (!libres.length) return false;
-    const place = auHasard(libres);
-    let recette;
-    if (this.tuto) recette = "cookie";
-    else {
-      const dispo = Object.keys(RECETTES).filter((k) => RECETTES[k].debloque <= this.servis);
-      // une recette tout juste débloquée est servie en priorité, pour la découvrir
-      const nouvelle = dispo.find((k) => !this.recettesVues.has(k));
-      recette = nouvelle || auHasard(dispo.length > 1 ? dispo.filter((k) => k !== this.derniereRecette) : dispo);
-    }
-    if (!this.recettesVues.has(recette) && this.recettesVues.size) {
-      this.dire(`Nouvelle recette : ${RECETTES[recette].emoji} ${RECETTES[recette].nom} ! (voir en bas)`, 3.5);
-    }
-    this.recettesVues.add(recette);
+    const place = choisir(libres);
+    let recette, decouverte = false;
+    if (!this.decouverteFaite) { recette = this.J.nouvelle; decouverte = true; this.decouverteFaite = true; }
+    else if (Math.random() < .35) recette = this.J.nouvelle;                 // la nouveauté revient souvent
+    else recette = choisir(this.recettes.length > 1 ? this.recettes.filter((k) => k !== this.derniereRecette) : this.recettes);
     this.derniereRecette = recette;
-    const animauxPris = this.clients.map((c) => c.emoji);
+    const pris = this.clients.map((c) => c.animal);
     const max = RECETTES[recette].patience * this.facteur;
     this.clients.push({
-      place, col: PLACES[place], x: -1, recette,
-      emoji: auHasard(ANIMAUX.filter((a) => !animauxPris.includes(a))),
+      id: ++this.numeroClient, place, col: PLACES[place], x: -1, recette, decouverte,
+      animal: choisir(ANIMAUX.filter((a) => !pris.includes(a))),
       patience: max, max, etat: "arrive", t: 0, content: false,
     });
-    this.majBandeau();
+    if (decouverte && this.jour > 0) this.dire(`Nouvelle recette : ${RECETTES[recette].nom} ! Touche son ticket en haut pour la voir en grand.`, 4.5);
     return true;
   },
 
@@ -385,30 +371,27 @@ const Cuisine = {
         c.x = Math.min(c.col, c.x + 3.2 * dt);
         if (c.x >= c.col) { c.etat = "attend"; Son.cloche(); }
       } else if (c.etat === "attend") {
-        if (!this.tuto) c.patience -= dt;
+        if (!c.decouverte) c.patience -= dt;
         if (c.patience <= 0) {
           c.etat = "part"; c.content = false; c.t = 0;
           this.partis++;
-          this.facteur = Math.min(+CONFIG.patience * 1.8 || 1.8, this.facteur + .12);  // on aide un peu après un départ
+          this.facteur = Math.min(this.facteurMax, this.facteur + .12);  // on aide un peu après un départ
           Son.triste();
-          this.dire(`${c.emoji} en a eu assez d'attendre… Pas grave, on continue !`, 3);
+          this.dire("Un client en a eu assez d'attendre… Pas grave, on continue !", 3);
           this.majHUD();
         }
-      } else if (c.etat === "part" && c.t > .7) {
-        c.x += 3.2 * dt;
-      }
+      } else if (c.etat === "part" && c.t > .7) c.x += 3.2 * dt;
     }
-    const avant = this.clients.length;
     this.clients = this.clients.filter((c) => c.x < COLS + 1);
-    if (this.clients.length !== avant) this.majBandeau();
 
     if (this.fini) return;
-    const enAttente = this.clients.filter((c) => c.etat !== "part").length;
-    const maxSimultanes = this.tuto ? 1 : (this.servis < 2 ? 2 : 3);
+    const enAttente = this.clients.filter((c) => c.etat !== "part");
+    // pendant la découverte d'une recette (ticket bleu), personne d'autre n'arrive
+    if (enAttente.some((c) => c.decouverte)) return;
     this.prochainClient -= dt;
-    if (enAttente === 0 && this.prochainClient > 1.5) this.prochainClient = 1.5;   // jamais de salle vide trop longtemps
-    if (this.prochainClient <= 0 && enAttente < maxSimultanes && this.servis + enAttente < this.objectif) {
-      if (this.nouveauClient()) this.prochainClient = this.servis < 4 ? hasardEntre(11, 16) : hasardEntre(8, 13);
+    if (!enAttente.length && this.prochainClient > 1.5) this.prochainClient = 1.5;   // jamais de salle vide trop longtemps
+    if (this.prochainClient <= 0 && enAttente.length < this.J.simultanes && this.servis + enAttente.length < this.objectif) {
+      if (this.nouveauClient()) this.prochainClient = this.jour < 2 ? hasard(10, 15) : hasard(8, 12);
     }
   },
 
@@ -450,7 +433,7 @@ const Cuisine = {
         if (st.etat === "cuisson" && st.t >= DUREE_CUISSON) { st.etat = "cuit"; st.t = 0; Son.ding(); }
         else if (st.etat === "cuit") {
           if (st.t > DELAI_BRULE - 5 && st.t - st.bip >= 1) { st.bip = st.t; Son.alerte(); }
-          if (st.t >= DELAI_BRULE) { st.etat = "brule"; Son.erreur(); this.dire("Oh non, un gâteau a brûlé dans le four ! 🔥"); }
+          if (st.t >= DELAI_BRULE) { st.etat = "brule"; Son.erreur(); this.dire("Oh non, un gâteau a brûlé dans le four !"); }
         }
       }
     }
@@ -465,48 +448,94 @@ const Cuisine = {
 
     if (this.message) { this.message.t -= dt; if (this.message.t <= 0) { this.message = null; this.afficherIndice(); } }
     this.tIndice -= dt;
-    if (this.tIndice <= 0) { this.tIndice = .2; this.indices = this.calculerIndices(); this.afficherIndice(); this.majBandeau(); }
+    if (this.tIndice <= 0) {
+      this.tIndice = .2;
+      this.affecter();
+      this.indices = this.calculerIndices();
+      this.afficherIndice();
+      this.majTickets();
+    }
+  },
+
+  /* ----------------------- Qui prépare quoi ? -----------------------
+     Chaque commande est associée à la préparation la plus avancée qui
+     peut encore lui servir : cela alimente les tickets et l'aide. */
+  affecter() {
+    const L = [], j = this.joueur, S = this.stations;
+    if (j.tenu && j.tenu.type === "cuit") L.push({ sorte: "objet", objet: j.tenu, lieu: null });
+    for (const p of S) if (p.type === "plan" && p.objet) L.push({ sorte: "objet", objet: p.objet, lieu: p });
+    for (const f of S) if (f.type === "four" && f.etat === "cuit") L.push({ sorte: "objet", objet: { type: "cuit", id: PATES[f.objet.id].cuit, decors: [] }, lieu: f });
+    if (j.tenu && j.tenu.type === "pate") L.push({ sorte: "pate", pate: j.tenu.id, lieu: null });
+    for (const f of S) if (f.type === "four" && f.etat === "cuisson") L.push({ sorte: "pate", pate: f.objet.id, lieu: f, cuisson: true });
+    for (const b of S) if (b.type === "bol" && b.pate) L.push({ sorte: "pate", pate: b.pate, lieu: b });
+    for (const b of S) if (b.type === "bol" && !b.pate && b.contenu.length) L.push({ sorte: "bol", contenu: b.contenu, lieu: b });
+    const ok = (e, k) => {
+      const r = RECETTES[k];
+      if (e.sorte === "bol") return contient(PATES[r.pate].ingr, e.contenu);
+      if (e.sorte === "pate") return e.pate === r.pate;
+      return e.objet.id === PATES[r.pate].cuit && contient(r.decors, e.objet.decors);
+    };
+    const attente = this.clients.filter((c) => c.etat === "attend" || c.etat === "arrive")
+      .sort((a, b) => a.patience / a.max - b.patience / b.max);
+    const utilises = new Set();
+    this.affectation = new Map();
+    for (const c of attente) {
+      const e = L.find((x) => !utilises.has(x) && ok(x, c.recette));
+      if (e) { utilises.add(e); this.affectation.set(c, e); }
+    }
+    this.preparations = L;
+    this.attente = attente;
+  },
+
+  progresClient(c) {
+    const e = this.affectation.get(c), r = RECETTES[c.recette], ingr = PATES[r.pate].ingr;
+    const p = { ingr: [], four: "non", decors: [] };
+    if (!e) return p;
+    if (e.sorte === "bol") p.ingr = [...e.contenu];
+    else { p.ingr = [...ingr]; p.four = e.sorte === "objet" ? "ok" : e.cuisson ? "encours" : "non"; }
+    if (e.sorte === "objet") p.decors = [...e.objet.decors];
+    return p;
   },
 
   /* ----------------------- Aide contextuelle ----------------------- */
   calculerIndices() {
-    const j = this.joueur, t = j.tenu, S = this.stations;
+    const j = this.joueur, t = j.tenu, S = this.stations.filter((s) => s.type !== "meuble");
     const bols = S.filter((s) => s.type === "bol"), fours = S.filter((s) => s.type === "four"), plans = S.filter((s) => s.type === "plan");
     const caisse = (id) => S.find((s) => s.type === "caisse" && s.id === id);
     const poubelle = S.find((s) => s.type === "poubelle");
-    const attente = this.clients.filter((c) => c.etat === "attend" || c.etat === "arrive")
-      .sort((a, b) => a.patience / a.max - b.patience / b.max);
+    const attente = this.attente;
     const cmds = attente.map((c) => c.recette);
     const R = (stations, texte) => ({ stations: stations.filter(Boolean), texte });
-    const comptoirDe = (rec) => { const c = attente.find((x) => x.recette === rec); return c ? this.grille[0][c.col] : null; };
+    const comptoirDe = (rec) => { const c = attente.find((x) => x.recette === rec && x.etat === "attend"); return c ? this.grille[0][c.col] : null; };
+    const affectes = [...this.affectation.values()];
 
     if (this.fini) return R([], "");
     if (t) {
       if (t.type === "ingr") {
         if (DECORS.includes(t.id)) {
-          const ok = plans.filter((p) => peutDecorer(p.objet, t.id));
-          if (ok.length) return R(ok, `Dépose ${ING[t.id].nom} sur le gâteau du plan de travail.`);
-          return R([caisse(t.id)], `Rien à décorer pour l'instant : repose ${ING[t.id].nom} dans sa caisse.`);
+          const ok = plans.filter((p) => peutDecorer(p.objet, t.id, this.recettes));
+          if (ok.length) return R(ok, `Dépose ${ING[t.id].art} sur le gâteau du plan de travail.`);
+          return R([caisse(t.id)], `Rien à décorer pour l'instant : repose ${ING[t.id].art} dans sa caisse.`);
         }
-        const ok = bols.filter((b) => this.peutAjouter(b, t.id));
-        if (ok.length) return R(ok, `Verse ${ING[t.id].nom} dans un saladier 🥣`);
-        return R([caisse(t.id)], `Aucun saladier n'en a besoin : repose ${ING[t.id].nom} dans sa caisse.`);
+        const ok = bols.filter((b) => this.peutAjouter(b, t.id)).sort((a, b) => b.contenu.length - a.contenu.length);
+        if (ok.length) return R([ok[0]], `Verse ${ING[t.id].art} dans le saladier.`);
+        return R([caisse(t.id)], `Aucun saladier n'en a besoin : repose ${ING[t.id].art} dans sa caisse.`);
       }
       if (t.type === "pate") {
         const ok = fours.filter((f) => !f.objet);
-        return R(ok, ok.length ? `Mets ${PATES[t.id].nom} au four 🔥` : "Les deux fours sont occupés : attends qu'un gâteau soit cuit.");
+        return R(ok, ok.length ? `Mets ${PATES[t.id].nom} au four.` : "Les fours sont occupés : attends qu'un gâteau soit cuit.");
       }
       if (t.type === "cuit") {
         const r = recetteDe(t);
         if (r && cmds.includes(r)) return R([comptoirDe(r)], `Sers ${nomObjet(t)} au client ! 🛎️`);
-        if (aDecorer(t)) {
+        if (aDecorer(t, this.recettes)) {
           const ok = plans.filter((p) => !p.objet);
-          if (ok.length) return R(ok, `Pose ${nomObjet(t)} sur un plan de travail pour le décorer.`);
+          if (ok.length) return R(ok, `Pose ${nomObjet(t)} sur le plan de travail pour le décorer.`);
           return R([poubelle], "Les plans de travail sont pleins : jette ce gâteau ou libère un plan.");
         }
         return R([poubelle, ...plans.filter((p) => !p.objet)], "Personne n'a commandé ça : pose-le sur un plan de travail ou jette-le.");
       }
-      if (t.type === "brule") return R([poubelle], "C'est brûlé ! Jette-le à la poubelle 🗑️");
+      if (t.type === "brule") return R([poubelle], "C'est brûlé ! Jette-le à la poubelle.");
     }
 
     // ---- Mains vides : quelle est la prochaine chose utile ? ----
@@ -519,58 +548,38 @@ const Cuisine = {
     const bPrets = bols.filter((b) => b.etat === "pret");
     if (bPrets.length && fours.some((f) => !f.objet)) return R(bPrets, "La pâte est prête : prends-la.");
 
-    // On associe chaque commande à ce qui est déjà en préparation
-    // (du plus avancé au moins avancé, pour finir ce qui est commencé)
-    const enCours = [];
-    for (const p of plans) if (p.objet) enCours.push({ lieu: p, sorte: "plan" });
-    for (const f of fours) if (f.objet && f.etat !== "brule") enCours.push({ lieu: f, sorte: f.etat === "cuisson" ? "pate" : "cuit" });
-    for (const b of bols) if (b.pate) enCours.push({ lieu: b, sorte: "pate" });
-    for (const b of bols) if (!b.pate && b.contenu.length) enCours.push({ lieu: b, sorte: "bol" });
-    const compatible = (e, r) => {
-      const rec = RECETTES[r];
-      if (e.sorte === "bol") return contient(PATES[rec.pate].ingr, e.lieu.contenu);
-      if (e.sorte === "pate") return (e.lieu.pate || (e.lieu.objet && e.lieu.objet.id)) === rec.pate;
-      if (e.sorte === "cuit") return PATES[e.lieu.objet.id].cuit === PATES[rec.pate].cuit;
-      return e.lieu.objet.id === PATES[rec.pate].cuit && contient(rec.decors, e.lieu.objet.decors);
-    };
-    const utilises = new Set(), aCommencer = [];
     for (const c of attente) {
-      const e = enCours.find((x) => !utilises.has(x) && compatible(x, c.recette));
-      if (e) { utilises.add(e); e.pour = c.recette; } else aCommencer.push(c.recette);
-    }
-    // décorations à apporter
-    for (const e of enCours) if (e.sorte === "plan" && e.pour) {
-      const manque = sauf(RECETTES[e.pour].decors, e.lieu.objet.decors);
-      if (manque.length) return R(manque.map(caisse), `Pour ${RECETTES[e.pour].emoji} ${RECETTES[e.pour].nom}, il faut ${manque.map((m) => ING[m].nom + " " + ING[m].emoji).join(" et ")}.`);
-    }
-    // saladiers à compléter
-    for (const e of enCours) if (e.sorte === "bol" && e.pour) {
-      const manque = sauf(PATES[RECETTES[e.pour].pate].ingr, e.lieu.contenu);
-      if (manque.length) return R(manque.map(caisse), `Il manque ${emojis(manque)} dans le saladier.`);
-    }
-    // une commande pas encore commencée
-    if (aCommencer.length) {
-      const r = RECETTES[aCommencer[0]], ingr = PATES[r.pate].ingr;
-      if (bols.some((b) => b.etat === "vide")) return R(ingr.map(caisse), `${r.emoji} ${r.nom} : apporte ${emojis(ingr)} dans un saladier.`);
-      // tout est encombré par des préparations dont personne ne veut : on aide à faire de la place
-      const inutiles = enCours.filter((e) => !e.pour && e.sorte === "bol");
-      if (inutiles.length) return R([inutiles[0].lieu], "Ce saladier ne sert à aucune commande : touche-le pour reprendre ses ingrédients.");
-    }
-    {
-      const plansInutiles = enCours.filter((e) => !e.pour && e.sorte === "plan");
-      const besoinPlan = attente.some((c) => RECETTES[c.recette].decors.length);
-      if (plansInutiles.length && besoinPlan && !plans.some((p) => !p.objet)) {
-        return R([plansInutiles[0].lieu], "Les plans de travail sont pleins : prends ce gâteau pour le jeter à la poubelle.");
+      const e = this.affectation.get(c), r = RECETTES[c.recette];
+      if (!e) continue;
+      if (e.sorte === "objet" && e.lieu && e.lieu.type === "plan") {
+        const manque = sauf(r.decors, e.objet.decors);
+        if (manque.length) return R(manque.map(caisse), `${r.nom} : il faut ${listeNoms(manque)} pour décorer.`);
+      }
+      if (e.sorte === "bol") {
+        const manque = sauf(PATES[r.pate].ingr, e.contenu);
+        if (manque.length) return R(manque.map(caisse), `${r.nom} : il manque ${listeNoms(manque)} dans le saladier.`);
       }
     }
-    if (enCours.some((e) => e.lieu.type === "four")) return R([], "Ça cuit… prépare la suite en attendant ! ⏳");
+    const sansPrepa = attente.filter((c) => !this.affectation.has(c));
+    if (sansPrepa.length) {
+      const r = RECETTES[sansPrepa[0].recette], ingr = PATES[r.pate].ingr;
+      if (bols.some((b) => b.etat === "vide")) return R(ingr.map(caisse), `${r.nom} : apporte ${listeNoms(ingr)} dans un saladier.`);
+      const inutile = this.preparations.find((e) => e.sorte === "bol" && !affectes.includes(e));
+      if (inutile) return R([inutile.lieu], "Ce saladier ne sert à aucune commande : touche-le pour reprendre ses ingrédients.");
+    }
+    const besoinPlan = attente.some((c) => RECETTES[c.recette].decors.length);
+    const planInutile = plans.find((p) => p.objet && !affectes.some((e) => e.lieu === p));
+    if (planInutile && besoinPlan && !plans.some((p) => !p.objet)) {
+      return R([planInutile], "Les plans de travail sont pleins : prends ce gâteau pour le jeter à la poubelle.");
+    }
+    if (fours.some((f) => f.etat === "cuisson")) return R([], "Ça cuit… prépare la suite en attendant ! ⏳");
     if (bols.some((b) => b.etat === "melange")) return R([], "Ça mélange… ⏳");
     if (!attente.length) return R([], "En attendant le prochain client… ☕");
     return R([], "");
   },
 
   afficherIndice() {
-    const el = document.getElementById("indice");
+    const el = $("#indice");
     const txt = this.message ? this.message.txt : this.indices.texte;
     if (el.textContent !== txt) el.textContent = txt;
     el.classList.toggle("message", !!this.message);
@@ -578,55 +587,68 @@ const Cuisine = {
 
   /* ----------------------- Interface HTML ----------------------- */
   majHUD() {
-    document.getElementById("hud-servis").textContent = `${this.servis}/${this.objectif}`;
-    document.getElementById("hud-jauge").style.width = (100 * this.servis / this.objectif) + "%";
-    document.getElementById("hud-pieces").textContent = this.pieces;
+    $("#hud-servis").textContent = `${this.servis}/${this.objectif}`;
+    $("#hud-jauge").style.width = (100 * this.servis / this.objectif) + "%";
+    $("#hud-pieces").textContent = this.pieces;
   },
 
-  etapes(k) {
-    const r = RECETTES[k];
-    return `${emojis(PATES[r.pate].ingr)} <i>→</i> 🔥${r.decors.length ? " <i>→</i> " + emojis(r.decors) : ""}`;
-  },
-
-  htmlRecettes(detaille) {
-    const dispo = Object.keys(RECETTES).filter((k) => this.recettesVues.has(k) || (detaille && RECETTES[k].debloque <= this.servis));
-    if (!dispo.length) return "";
-    return dispo.map((k) => {
-      const r = RECETTES[k];
-      if (!detaille) {
-        const cmd = this.clients.some((c) => c.recette === k && c.etat !== "part");
-        return `<div class="puce ${cmd ? "commande" : ""}"><span class="emoji gros">${r.emoji}</span><span class="emoji">${this.etapes(k)}</span></div>`;
-      }
-      return `<div class="fiche"><div class="emoji gros">${r.emoji}</div><div><b>${r.nom}</b><br><span class="emoji">${this.etapes(k)}</span></div></div>`;
-    }).join("");
-  },
-
-  majBandeau() {
-    const html = this.htmlRecettes(false);
-    if (html !== this.signatureBandeau) {
-      this.signatureBandeau = html;
-      document.getElementById("bandeau").innerHTML = html;
+  majTickets() {
+    const slots = [0, 1, 2].map((p) => this.clients.find((c) => c.place === p && c.etat !== "part"));
+    const sig = slots.map((c) => c ? `${c.id}|${JSON.stringify(this.progresClient(c))}` : "-").join("/");
+    if (sig !== this.sigTickets) {
+      this.sigTickets = sig;
+      $("#tickets").innerHTML = slots.map((c) => c ? this.htmlTicket(c) : `<div class="ticket vide"></div>`).join("");
     }
+    // jauges de patience (mises à jour en continu)
+    const tickets = $("#tickets").children;
+    slots.forEach((c, i) => {
+      if (!c || !tickets[i]) return;
+      const bar = tickets[i].querySelector(".t-patience > div");
+      if (!bar) return;
+      const f = Math.max(0, c.patience / c.max);
+      bar.style.width = (c.decouverte ? 100 : f * 100) + "%";
+      bar.style.background = c.decouverte ? "#7fb8ef" : f > .5 ? "#5cc28f" : f > .25 ? "#f2b33d" : "#e0453a";
+      tickets[i].classList.toggle("urgent", !c.decouverte && f <= .25);
+    });
+  },
+
+  htmlTicket(c) {
+    const r = RECETTES[c.recette], ingr = PATES[r.pate].ingr, p = this.progresClient(c);
+    const reste = [...p.ingr];
+    const ic = (img, ok, cls = "") => `<span class="t-ic ${ok ? "ok" : ""} ${cls}"><img src="${srcImg(img)}" alt=""></span>`;
+    const lIngr = ingr.map((i) => { const k = reste.indexOf(i); if (k >= 0) reste.splice(k, 1); return ic(ING[i].img, k >= 0); }).join("");
+    const lDecor = r.decors.map((d) => ic(ING[d].img, p.decors.includes(d))).join("");
+    return `<div class="ticket ${c.decouverte ? "decouverte" : ""}" data-recette="${c.recette}" role="button" aria-label="Voir la recette ${r.nom}">
+      <div class="t-patience"><div></div></div>
+      <div class="t-tete"><img class="t-plat" src="${srcImg(r.img)}" alt=""><span class="t-nom">${r.nom}</span><img class="t-client" src="${srcImg(c.animal)}" alt=""></div>
+      <div class="t-ligne">${lIngr}</div>
+      <div class="t-ligne">${ic("feu", p.four === "ok", p.four === "encours" ? "encours" : "")}${lDecor ? `<i>›</i>${lDecor}` : ""}</div>
+    </div>`;
   },
 
   /* ----------------------- Fin de journée ----------------------- */
   async terminer() {
     this.fini = true;
     this.joueur.file = [];
-    await new Promise((r) => setTimeout(r, 1600));
-    Son.victoire();
     const etoiles = this.partis === 0 ? 3 : this.partis <= 2 ? 2 : 1;
-    document.getElementById("fin-etoiles").textContent = "⭐".repeat(etoiles) + "☆".repeat(3 - etoiles);
-    document.getElementById("fin-servis").textContent = this.servis;
-    document.getElementById("fin-partis").textContent = this.partis;
-    document.getElementById("fin-pieces").textContent = this.pieces;
-    document.getElementById("ov-fin").hidden = false;
-    lancerConfettis(120);
-  },
-  quitter() {
+    Progression.finirJour(this.jour, etoiles);
+    await pause(1600);
     this.enCours = false;
-    document.getElementById("ov-fin").hidden = true;
-    afficher("ecran-cadeau");
+    Son.victoire();
+    const dernier = this.jour === JOURS.length - 1;
+    $("#fin-titre").textContent = dernier ? "La semaine est finie ! 🎉" : `Jour ${this.jour + 1} réussi ! 🎉`;
+    $("#fin-etoiles").innerHTML = "★".repeat(etoiles) + `<span>${"★".repeat(3 - etoiles)}</span>`;
+    $("#fin-servis").textContent = this.servis;
+    $("#fin-partis").textContent = this.partis;
+    $("#fin-pieces").textContent = this.pieces;
+    $("#fin-texte").textContent = dernier
+      ? "Quelle semaine ! Il est temps de fermer la boutique… mais quelqu'un a laissé un paquet sur le comptoir."
+      : `Prochain jour : ${JOURS[this.jour + 1].titre.toLowerCase()}.`;
+    $("#btn-jour-suivant").hidden = dernier;
+    $("#btn-fermer-boutique").hidden = !dernier;
+    $("#btn-menu").hidden = dernier;
+    $("#ov-fin").hidden = false;
+    lancerConfettis(120);
   },
 
   /* ============================ DESSIN ============================ */
@@ -634,24 +656,22 @@ const Cuisine = {
   py(r) { return this.gy + r * this.T; },
 
   dessiner() {
+    if (!this.stations) return;
     const c = this.ctx, T = this.T;
     c.clearRect(0, 0, this.W, this.H);
     c.save();
     rectArrondi(c, this.ox, this.oy, COLS * T, (LIGNES + ZONE) * T, 16);
     c.clip();
-
-    // Salle des clients (papier peint rayé)
     c.fillStyle = "#fde3e7"; c.fillRect(this.ox, this.oy, COLS * T, ZONE * T);
     c.fillStyle = "#fbd2da";
     for (let x = 0; x < COLS * 2; x += 2) c.fillRect(this.ox + x * T / 2, this.oy, T / 4, ZONE * T);
-    // Carrelage de la cuisine
     for (let r = 0; r < LIGNES; r++) for (let col = 0; col < COLS; col++) {
       c.fillStyle = (r + col) % 2 ? "#f7e7d6" : "#fdf3e7";
       c.fillRect(this.px(col), this.py(r), T, T);
     }
     this.dessinerClients();
     for (const st of this.stations) this.dessinerStation(st);
-    this.dessinerIndices();
+    if (Progression.etat.fleches) this.dessinerContours();
     this.dessinerFile();
     this.dessinerJoueur();
     this.dessinerEffets();
@@ -664,6 +684,15 @@ const Cuisine = {
     c.fillStyle = "#f3e0cc"; rectArrondi(c, x + 1, y + 1, T - 2, T * .8, T * .14); c.fill();
   },
 
+  etiquette(texte, cx, y) {
+    const c = this.ctx, T = this.T, taille = Math.max(9, Math.min(14, T * .19));
+    c.font = `800 ${taille}px Nunito, sans-serif`;
+    const w = Math.min(T - 4, c.measureText(texte).width + 8);
+    c.fillStyle = "rgba(91,58,41,.8)"; rectArrondi(c, cx - w / 2, y - taille * .62, w, taille * 1.24, taille * .6); c.fill();
+    c.fillStyle = "#fff"; c.textAlign = "center"; c.textBaseline = "middle";
+    c.fillText(texte, cx, y + 1, T - 8);
+  },
+
   dessinerStation(st) {
     const c = this.ctx, T = this.T, x = this.px(st.c), y = this.py(st.r), cx = x + T / 2;
     switch (st.type) {
@@ -671,77 +700,68 @@ const Cuisine = {
         c.fillStyle = "#b97c4e"; c.fillRect(x, y, T, T);
         c.fillStyle = "#d89c6a"; c.fillRect(x, y, T, T * .55);
         c.fillStyle = "rgba(255,255,255,.18)"; c.fillRect(x, y + T * .05, T, T * .08);
-        if (st.c === 3) emoji(c, "🛎️", cx, y + T * .32, T * .38);
+        if (st.c === 3) dessinerImage(c, "cloche", cx, y + T * .3, T * .42);
         break;
       case "meuble":
         this.baseMeuble(x, y);
-        if (st.deco) emoji(c, st.deco, cx, y + T * .42, T * .48);
+        if (st.deco) dessinerImage(c, st.deco, cx, y + T * .42, T * .56);
         break;
       case "caisse":
         this.baseMeuble(x, y);
-        c.fillStyle = "#c48a57"; rectArrondi(c, x + T * .12, y + T * .16, T * .76, T * .62, T * .08); c.fill();
-        c.strokeStyle = "#a06c3f"; c.lineWidth = Math.max(1, T * .03);
-        for (const k of [.36, .58]) { c.beginPath(); c.moveTo(x + T * .14, y + T * k); c.lineTo(x + T * .86, y + T * k); c.stroke(); }
-        emoji(c, ING[st.id].emoji, cx, y + T * .44, T * .5);
+        c.fillStyle = "#c48a57"; rectArrondi(c, x + T * .1, y + T * .1, T * .8, T * .66, T * .1); c.fill();
+        c.fillStyle = "#d59d69"; rectArrondi(c, x + T * .1, y + T * .1, T * .8, T * .1, T * .05); c.fill();
+        dessinerImage(c, ING[st.id].img, cx, y + T * .42, T * .6);
+        this.etiquette(ING[st.id].nom, cx, y + T * .82);
         break;
-      case "bol": {
+      case "bol":
         this.baseMeuble(x, y);
-        const by = y + T * .52;
-        c.fillStyle = "#dfe7ee";
-        c.beginPath(); c.ellipse(cx, by, T * .34, T * .26, 0, 0, Math.PI); c.fill();
-        c.fillStyle = "#ffffff"; c.strokeStyle = "#b9c6d2"; c.lineWidth = 1.5;
-        c.beginPath(); c.ellipse(cx, by, T * .34, T * .1, 0, 0, Math.PI * 2); c.fill(); c.stroke();
-        if (st.etat === "melange" || st.etat === "pret") {
-          c.fillStyle = PATES[st.pate].couleur;
-          c.beginPath(); c.ellipse(cx, by, T * .29, T * .075, 0, 0, Math.PI * 2); c.fill();
-          if (st.etat === "melange") {
-            const a = this.temps * 9;
-            c.strokeStyle = "#8d99a6"; c.lineWidth = Math.max(2, T * .05); c.lineCap = "round";
-            c.beginPath(); c.moveTo(cx + Math.cos(a) * T * .14, by + Math.sin(a) * T * .04); c.lineTo(cx + T * .08, by - T * .42); c.stroke();
-            anneau(c, cx, y + T * .5, T * .44, st.t / DUREE_MELANGE, "#7cc6a4");
-          } else emoji(c, "✨", cx + T * .28, y + T * .2, T * .26);
+        if (st.pate) {
+          const vibre = st.etat === "melange" ? Math.sin(this.temps * 30) * T * .02 : 0;
+          dessinerImage(c, PATES[st.pate].img, cx + vibre, y + T * .5, T * .82);
+          if (st.etat === "melange") anneau(c, cx, y + T * .5, T * .44, st.t / DUREE_MELANGE, "#7cc6a4");
+          else dessinerImage(c, "etincelles", x + T * .8, y + T * .18, T * .3);
         } else {
-          st.contenu.forEach((id, i) => emoji(c, ING[id].emoji, cx + (i - (st.contenu.length - 1) / 2) * T * .22, by - T * .1, T * .26));
+          dessinerImage(c, "saladier", cx, y + T * .56, T * .8);
+          st.contenu.forEach((id, i) => dessinerImage(c, ING[id].img, cx + (i - (st.contenu.length - 1) / 2) * T * .26, y + T * .34, T * .34));
         }
         break;
-      }
       case "four": {
         c.fillStyle = "#aab3be"; rectArrondi(c, x + 1, y + 1, T - 2, T - 2, T * .12); c.fill();
         c.fillStyle = "#c8cfd8"; rectArrondi(c, x + 1, y + 1, T - 2, T * .86, T * .12); c.fill();
         c.fillStyle = "#6c7380";
         for (const k of [.3, .5, .7]) { c.beginPath(); c.arc(x + T * k, y + T * .14, T * .045, 0, Math.PI * 2); c.fill(); }
-        const wx = x + T * .14, wy = y + T * .26, ww = T * .72, wh = T * .46;
+        const wx = x + T * .12, wy = y + T * .25, ww = T * .76, wh = T * .5;
         c.fillStyle = "#34292a"; rectArrondi(c, wx, wy, ww, wh, T * .08); c.fill();
         if (st.objet) {
-          const chaud = st.etat === "cuisson" ? .5 + .15 * Math.sin(this.temps * 6) : st.etat === "cuit" ? .35 : .15;
+          const chaud = st.etat === "cuisson" ? .55 + .15 * Math.sin(this.temps * 6) : st.etat === "cuit" ? .35 : .15;
           const g = c.createRadialGradient(cx, wy + wh, 2, cx, wy + wh, wh * 1.2);
           g.addColorStop(0, `rgba(255,140,40,${chaud})`); g.addColorStop(1, "rgba(255,140,40,0)");
           c.fillStyle = g; rectArrondi(c, wx, wy, ww, wh, T * .08); c.fill();
           const o = st.etat === "cuisson" ? st.objet : st.etat === "brule" ? { type: "brule" } : { type: "cuit", id: PATES[st.objet.id].cuit, decors: [] };
-          dessinerObjet(c, o, cx, wy + wh * .58, T * .4);
-          // barre de cuisson
-          const bx = x + T * .14, byy = y + T * .8, bw = T * .72, bh = T * .09;
+          c.save(); rectArrondi(c, wx, wy, ww, wh, T * .08); c.clip();
+          dessinerObjet(c, o, cx, wy + wh * .55, T * .46);
+          c.restore();
+          const bx = x + T * .12, byy = y + T * .82, bw = T * .76, bh = T * .09;
           c.fillStyle = "rgba(0,0,0,.2)"; rectArrondi(c, bx, byy, bw, bh, bh / 2); c.fill();
           let frac = 1, coul = "#f2b33d";
           if (st.etat === "cuisson") { frac = st.t / DUREE_CUISSON; coul = "#7cc6a4"; }
           else if (st.etat === "cuit" && st.t > DELAI_BRULE - 5) coul = Math.floor(this.temps * 4) % 2 ? "#e0453a" : "#f2b33d";
           else if (st.etat === "brule") coul = "#3a2a24";
           c.fillStyle = coul; rectArrondi(c, bx, byy, bw * Math.min(1, frac), bh, bh / 2); c.fill();
-          if (st.etat === "cuit") emoji(c, st.t > DELAI_BRULE - 5 ? "⚠️" : "✅", x + T * .84, y + T * .2, T * .3);
-          if (st.etat === "brule") emoji(c, "💨", cx + Math.sin(this.temps * 3) * T * .1, y + T * .12, T * .34);
+          if (st.etat === "cuit") dessinerImage(c, st.t > DELAI_BRULE - 5 ? "attention" : "valide", x + T * .84, y + T * .2, T * .34);
+          if (st.etat === "brule") dessinerImage(c, "fumee", cx + Math.sin(this.temps * 3) * T * .1, y + T * .14, T * .4);
         }
         break;
       }
       case "plan":
         this.baseMeuble(x, y);
-        c.fillStyle = "#deae78"; rectArrondi(c, x + T * .12, y + T * .2, T * .76, T * .56, T * .12); c.fill();
-        c.fillStyle = "#c99560"; c.beginPath(); c.arc(x + T * .8, y + T * .3, T * .035, 0, Math.PI * 2); c.fill();
-        if (st.objet) dessinerObjet(c, st.objet, cx, y + T * .5, T * .54);
-        else { c.globalAlpha = .35; emoji(c, "🔪", cx, y + T * .48, T * .3); c.globalAlpha = 1; }
+        c.fillStyle = "#deae78"; rectArrondi(c, x + T * .1, y + T * .18, T * .8, T * .6, T * .12); c.fill();
+        c.fillStyle = "#c99560"; c.beginPath(); c.arc(x + T * .8, y + T * .28, T * .035, 0, Math.PI * 2); c.fill();
+        if (st.objet) dessinerObjet(c, st.objet, cx, y + T * .5, T * .64);
         break;
       case "poubelle":
         this.baseMeuble(x, y);
-        emoji(c, "🗑️", cx, y + T * .44, T * .55);
+        dessinerImage(c, "poubelle", cx, y + T * .44, T * .62);
         break;
     }
   },
@@ -751,24 +771,22 @@ const Cuisine = {
     for (const cl of this.clients) {
       const cx = this.px(cl.x + .5), base = this.oy;
       const saut = cl.etat !== "attend" ? Math.abs(Math.sin(cl.t * 10)) * T * .06 : 0;
-      const fache = cl.etat === "attend" && cl.patience / cl.max < .25;
+      const fache = cl.etat === "attend" && !cl.decouverte && cl.patience / cl.max < .25;
       const tremble = fache ? Math.sin(this.temps * 40) * T * .02 : 0;
-      emoji(c, cl.emoji, cx + tremble, base + T * 1.82 - saut, T * .95);
+      dessinerImage(c, cl.animal, cx + tremble, base + T * 1.22 - saut, T * .92);
       if (cl.etat === "attend") {
-        // bulle de commande
-        c.fillStyle = "#fff"; c.strokeStyle = "rgba(91,58,41,.15)"; c.lineWidth = 1;
-        rectArrondi(c, cx - T * .44, base + T * .1, T * .88, T * .66, T * .16); c.fill(); c.stroke();
-        c.beginPath(); c.moveTo(cx - T * .08, base + T * .75); c.lineTo(cx, base + T * .88); c.lineTo(cx + T * .08, base + T * .75); c.fill();
-        emoji(c, RECETTES[cl.recette].emoji, cx, base + T * .44, T * .48);
-        // jauge de patience
-        const f = Math.max(0, cl.patience / cl.max);
-        const bx = cx - T * .4, by = base + T * .95, bw = T * .8, bh = T * .1;
-        c.fillStyle = "rgba(91,58,41,.18)"; rectArrondi(c, bx, by, bw, bh, bh / 2); c.fill();
-        c.fillStyle = this.tuto ? "#7fb8ef" : f > .5 ? "#5cc28f" : f > .25 ? "#f2b33d" : "#e0453a";
-        rectArrondi(c, bx, by, Math.max(bh, bw * f), bh, bh / 2); c.fill();
-        if (fache) emoji(c, "💢", cx + T * .36, base + T * 1.25, T * .3);
+        // bulle de commande entourée de la jauge de patience
+        const bx = cx + T * .36, by = base + T * .4, r = T * .27;
+        const f = cl.decouverte ? 1 : Math.max(0, cl.patience / cl.max);
+        c.fillStyle = "#fff"; c.beginPath(); c.arc(bx, by, r, 0, Math.PI * 2); c.fill();
+        c.lineWidth = Math.max(3, T * .06); c.lineCap = "round";
+        c.strokeStyle = "rgba(91,58,41,.15)"; c.beginPath(); c.arc(bx, by, r, 0, Math.PI * 2); c.stroke();
+        c.strokeStyle = cl.decouverte ? "#7fb8ef" : f > .5 ? "#5cc28f" : f > .25 ? "#f2b33d" : "#e0453a";
+        c.beginPath(); c.arc(bx, by, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * f); c.stroke(); c.lineCap = "butt";
+        dessinerImage(c, RECETTES[cl.recette].img, bx, by, r * 1.45);
+        if (fache) dessinerImage(c, "colere", cx - T * .34, base + T * .78, T * .3);
       } else if (cl.etat === "part") {
-        emoji(c, cl.content ? "💖" : "😤", cx + T * .34, base + T * 1.25, T * .32);
+        dessinerImage(c, cl.content ? "coeur" : "fache", cx + T * .34, base + T * .55, T * .36);
       }
     }
   },
@@ -780,15 +798,13 @@ const Cuisine = {
     const geste = j.geste > 0 ? T * .06 : 0;
     c.fillStyle = "rgba(91,58,41,.18)";
     c.beginPath(); c.ellipse(x, y + T * .36, T * .26, T * .08, 0, 0, Math.PI * 2); c.fill();
-    // corps + tablier
     c.fillStyle = "#ef7fa6";
     c.beginPath(); c.ellipse(x, y + T * .14 - bob, T * .25, T * .25, 0, 0, Math.PI * 2); c.fill();
     c.fillStyle = "#fff";
     c.beginPath(); c.ellipse(x, y + T * .2 - bob, T * .14, T * .17, 0, 0, Math.PI * 2); c.fill();
-    // tête
     const hy = y - T * .17 - bob - geste;
     c.fillStyle = "#f5cfb2"; c.beginPath(); c.arc(x, hy, T * .19, 0, Math.PI * 2); c.fill();
-    c.fillStyle = "#8a5a40"; // cheveux
+    c.fillStyle = "#8a5a40";
     c.beginPath(); c.arc(x, hy - T * .02, T * .19, Math.PI * 1.05, Math.PI * 1.95); c.fill();
     c.fillStyle = "#3b2a22";
     c.beginPath(); c.arc(x - T * .065 + j.dir * T * .02, hy + T * .02, T * .025, 0, Math.PI * 2); c.fill();
@@ -796,28 +812,23 @@ const Cuisine = {
     c.fillStyle = "rgba(239,127,166,.5)";
     c.beginPath(); c.arc(x - T * .11, hy + T * .08, T * .035, 0, Math.PI * 2); c.fill();
     c.beginPath(); c.arc(x + T * .11, hy + T * .08, T * .035, 0, Math.PI * 2); c.fill();
-    // toque
     c.fillStyle = "#fff"; c.strokeStyle = "#e6d6c8"; c.lineWidth = 1;
     c.fillRect(x - T * .13, hy - T * .27, T * .26, T * .1); c.strokeRect(x - T * .13, hy - T * .27, T * .26, T * .1);
     for (const dx of [-.1, 0, .1]) { c.beginPath(); c.arc(x + dx * T, hy - T * .32, T * .1, 0, Math.PI * 2); c.fill(); }
-    // objet porté
     if (j.tenu) {
-      c.fillStyle = "rgba(255,255,255,.85)";
-      c.beginPath(); c.arc(x, hy - T * .62, T * .27, 0, Math.PI * 2); c.fill();
-      dessinerObjet(c, j.tenu, x, hy - T * .62, T * .42);
+      c.fillStyle = "rgba(255,255,255,.9)";
+      c.beginPath(); c.arc(x, hy - T * .64, T * .3, 0, Math.PI * 2); c.fill();
+      dessinerObjet(c, j.tenu, x, hy - T * .64, T * .5);
     }
   },
 
-  dessinerIndices() {
-    const c = this.ctx, T = this.T;
-    const pulse = .5 + .5 * Math.sin(this.temps * 6);
+  dessinerContours() {
+    const c = this.ctx, T = this.T, pulse = .5 + .5 * Math.sin(this.temps * 6);
     for (const st of this.indices.stations) {
       const x = this.px(st.c), y = this.py(st.r);
       c.strokeStyle = `rgba(255,179,0,${.55 + .45 * pulse})`; c.lineWidth = 3;
       rectArrondi(c, x + 2, y + 2, T - 4, T - 4, T * .14); c.stroke();
     }
-    // flèches (dessinées après coup pour passer au-dessus des meubles voisins)
-    this._fleches = this.indices.stations;
   },
 
   dessinerFile() {
@@ -834,13 +845,14 @@ const Cuisine = {
 
   dessinerEffets() {
     const c = this.ctx, T = this.T;
-    // flèches d'aide
-    const saut = Math.abs(Math.sin(this.temps * 5)) * T * .12;
-    for (const st of this._fleches || []) {
-      const x = this.px(st.c) + T / 2, y = this.py(st.r) - T * .02 - saut;
-      c.fillStyle = "#ffb300"; c.strokeStyle = "#fff"; c.lineWidth = 2;
-      c.beginPath(); c.moveTo(x - T * .14, y - T * .18); c.lineTo(x + T * .14, y - T * .18); c.lineTo(x, y); c.closePath();
-      c.fill(); c.stroke();
+    if (Progression.etat.fleches) {
+      const saut = Math.abs(Math.sin(this.temps * 5)) * T * .12;
+      for (const st of this.indices.stations) {
+        const x = this.px(st.c) + T / 2, y = this.py(st.r) - T * .02 - saut;
+        c.fillStyle = "#ffb300"; c.strokeStyle = "#fff"; c.lineWidth = 2;
+        c.beginPath(); c.moveTo(x - T * .14, y - T * .18); c.lineTo(x + T * .14, y - T * .18); c.lineTo(x, y); c.closePath();
+        c.fill(); c.stroke();
+      }
     }
     for (const e of this.effets) {
       const x = this.px(e.x), y = this.py(e.y);
@@ -849,29 +861,18 @@ const Cuisine = {
         c.beginPath(); c.arc(x, y, T * (.45 - e.vie / .4 * .3), 0, Math.PI * 2); c.stroke();
       } else if (e.type === "texte") {
         c.globalAlpha = Math.min(1, e.vie);
-        c.font = `800 ${Math.round(T * .32)}px Nunito, ${EMOJI_FONT}`; c.textAlign = "center"; c.textBaseline = "middle";
+        c.font = `800 ${Math.round(T * .32)}px Nunito, sans-serif`; c.textAlign = "right"; c.textBaseline = "middle";
         c.lineWidth = 4; c.strokeStyle = "#fff"; c.strokeText(e.txt, x, y);
         c.fillStyle = e.couleur; c.fillText(e.txt, x, y);
+        dessinerImage(c, "piece", x + T * .2, y, T * .32);
         c.globalAlpha = 1;
       } else if (e.type === "coeur") {
-        c.globalAlpha = Math.min(1, e.vie); emoji(c, "💗", x, y, T * .26); c.globalAlpha = 1;
+        c.globalAlpha = Math.min(1, e.vie); dessinerImage(c, "coeur", x, y, T * .3); c.globalAlpha = 1;
       }
     }
   },
 };
 
-/* ----------------------------- Dessin d'objets ----------------------------- */
-function emoji(c, ch, x, y, taille) {
-  c.font = `${Math.round(taille)}px ${EMOJI_FONT}`;
-  c.textAlign = "center"; c.textBaseline = "middle";
-  c.fillText(ch, x, y);
-}
-function rectArrondi(c, x, y, w, h, r) {
-  r = Math.min(r, w / 2, h / 2);
-  c.beginPath(); c.moveTo(x + r, y);
-  c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r);
-  c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath();
-}
 function anneau(c, x, y, r, frac, couleur) {
   c.strokeStyle = "rgba(0,0,0,.12)"; c.lineWidth = 4;
   c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.stroke();
@@ -880,33 +881,19 @@ function anneau(c, x, y, r, frac, couleur) {
   c.lineCap = "butt";
 }
 
-function dessinerObjet(c, o, x, y, s) {
-  if (o.type === "ingr") return emoji(c, ING[o.id].emoji, x, y, s);
-  if (o.type === "pate") {
-    c.fillStyle = "#dfe7ee";
-    c.beginPath(); c.ellipse(x, y, s * .45, s * .36, 0, 0, Math.PI); c.fill();
-    c.fillStyle = "#fff"; c.beginPath(); c.ellipse(x, y, s * .45, s * .14, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = PATES[o.id].couleur; c.beginPath(); c.ellipse(x, y, s * .38, s * .1, 0, 0, Math.PI * 2); c.fill();
-    if (o.id === "cookie") { c.fillStyle = "#4a2c1d"; for (const dx of [-.18, .05, .2]) { c.beginPath(); c.arc(x + dx * s, y + (dx > 0 ? -.02 : .03) * s, s * .035, 0, Math.PI * 2); c.fill(); } }
-    return;
-  }
-  if (o.type === "brule") {
-    c.fillStyle = "#2b2220"; c.beginPath(); c.ellipse(x, y + s * .08, s * .38, s * .2, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = "rgba(120,120,120,.6)";
-    for (const [dx, dy, r] of [[-.12, -.22, .1], [.08, -.32, .13], [.2, -.2, .08]]) { c.beginPath(); c.arc(x + dx * s, y + dy * s, r * s, 0, Math.PI * 2); c.fill(); }
-    return;
-  }
-  // gâteau cuit
-  const r = recetteDe(o);
-  if (r && (RECETTES[r].decors.length || o.id === "cookie")) return emoji(c, RECETTES[r].emoji, x, y, s);
-  if (o.id === "genoise") {
-    c.fillStyle = "#d9a441";
-    c.beginPath(); c.ellipse(x, y + s * .16, s * .4, s * .12, 0, 0, Math.PI * 2); c.fill();
-    c.fillRect(x - s * .4, y - s * .08, s * .8, s * .24);
-    c.fillStyle = "#f2cf73"; c.beginPath(); c.ellipse(x, y - s * .08, s * .4, s * .12, 0, 0, Math.PI * 2); c.fill();
-  } else if (o.id === "fond") {
-    c.fillStyle = "#c98d4f"; c.beginPath(); c.ellipse(x, y + s * .06, s * .44, s * .2, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = "#f0d39c"; c.beginPath(); c.ellipse(x, y + s * .02, s * .34, s * .13, 0, 0, Math.PI * 2); c.fill();
-  }
-  o.decors.forEach((d, i) => emoji(c, ING[d].emoji, x + (i - (o.decors.length - 1) / 2) * s * .32, y - s * .22, s * .38));
+/* Fiche recette en HTML (grande et lisible) */
+function htmlFiche(k, grande) {
+  const r = RECETTES[k], p = PATES[r.pate];
+  const fig = (img, nom) => `<figure><img src="${srcImg(img)}" alt=""><figcaption>${nom}</figcaption></figure>`;
+  const plus = '<i class="plus">+</i>';
+  const etapes = [
+    ["Dans un saladier", p.ingr.map((i) => fig(ING[i].img, ING[i].nom)).join(plus)],
+    ["Au four", fig("feu", "Cuisson")],
+  ];
+  if (r.decors.length) etapes.push(["Décore sur le plan de travail", r.decors.map((d) => fig(ING[d].img, ING[d].nom)).join(plus)]);
+  etapes.push(["Sers au comptoir", fig("cloche", "Servir")]);
+  return `<div class="fiche ${grande ? "grande" : ""}">
+    <div class="fiche-tete"><img src="${srcImg(r.img)}" alt=""><b>${r.nom}</b></div>
+    <ol>${etapes.map(([t, h], i) => `<li><span class="num">${i + 1}</span><div><span class="etape-titre">${t}</span><div class="icones">${h}</div></div></li>`).join("")}</ol>
+  </div>`;
 }

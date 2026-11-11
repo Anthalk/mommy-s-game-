@@ -1,14 +1,5 @@
 "use strict";
 /* Écrans, bon cadeau (QR code + image téléchargeable) et confettis */
-const $ = (s) => document.querySelector(s);
-const pause = (ms) => new Promise((r) => setTimeout(r, ms));
-const hasard = (a, b) => a + Math.random() * (b - a);
-const choisir = (t) => t[Math.floor(Math.random() * t.length)];
-
-function afficher(id) {
-  document.querySelectorAll(".ecran").forEach((e) => e.classList.toggle("actif", e.id === id));
-}
-
 /* ===================== LE CADEAU ===================== */
 function texteQR() {
   if (CONFIG.qrContenu && CONFIG.qrContenu.trim()) return CONFIG.qrContenu.trim();
@@ -64,13 +55,14 @@ $("#cadeau").addEventListener("click", async () => {
   await pause(1000);
   c.classList.remove("secoue");
   remplirBon();
+  Progression.etat.bonVu = true; Progression.sauver();
   afficher("ecran-bon");
   Son.victoire();
   lancerConfettis(220);
   setTimeout(() => lancerConfettis(120), 900);
 });
 
-$("#btn-rejouer").addEventListener("click", () => { afficher("ecran-accueil"); });
+$("#btn-retour-semaine").addEventListener("click", () => Semaine.afficher());
 
 /* ---------------------- Image téléchargeable du bon ---------------------- */
 function lignes(ctx, texte, largeurMax) {
@@ -123,12 +115,12 @@ async function imageDuBon() {
   c.font = '400 32px Nunito, sans-serif'; c.globalAlpha = .75;
   if (CONFIG.validite) { c.fillText(CONFIG.validite, W / 2, y); y += 50; }
   c.globalAlpha = 1;
-  c.font = '52px Pacifico, cursive'; c.fillStyle = "#8a5a40";
+  c.fillStyle = "#8a5a40";
   // la signature peut contenir un emoji : on combine les polices
   c.font = `52px Pacifico, ${emo}`;
   c.fillText(CONFIG.signature, W / 2, Math.max(y + 40, H - 150));
-  c.font = `70px ${emo}`;
-  c.fillText("🎂", 200, H - 140); c.fillText("🧁", W - 200, H - 140);
+  // (en ouvrant le fichier en local, le navigateur interdit d'exporter une image contenant des PNG)
+  if (location.protocol !== "file:") { dessinerImage(c, "anniversaire", 190, H - 150, 110); dessinerImage(c, "cupcake", W - 190, H - 150, 110); }
   return cv;
 }
 

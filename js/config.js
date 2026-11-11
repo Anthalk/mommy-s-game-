@@ -14,7 +14,11 @@ const CONFIG = {
   // réservation ou le bon du prestataire) : le scanner ouvrira directement ce lien.
   qrContenu: "",
 
+  // ----- La révélation -----
+  // Le bon cadeau ne s'ouvre qu'à partir de cette date (heure de Paris en novembre = UTC+1)
+  dateRevelation: "2026-11-14T18:00:00+01:00",
+  fuseauHoraire: "Europe/Paris",
+
   // ----- Le jeu -----
-  clientsAServir: 8,   // Nombre de clients à servir pour finir la journée
   patience: 1,         // Patience des clients (1.5 = 50 % plus patients, 0.8 = plus pressés)
 };

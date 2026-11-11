@@ -1,52 +1,62 @@
 # 🧁 La pâtisserie de Maman — jeu d'anniversaire
 
-Petit jeu de gestion de cuisine (téléphone ou ordinateur). Des clients arrivent
-au comptoir avec une commande et une jauge de patience ; il faut préparer leurs
-desserts avant qu'ils ne s'impatientent. À la fin de la journée, un paquet
-attend sur le comptoir : il révèle un **bon cadeau pour un atelier pâtisserie**
-avec son QR code.
+Jeu de gestion de cuisine (téléphone ou ordinateur) en **5 jours**. Des clients
+arrivent au comptoir avec une commande et une jauge de patience ; il faut
+préparer leurs desserts avant qu'ils ne s'impatientent. Chaque jour ajoute une
+recette et des meubles. Une fois la semaine terminée, un **bon cadeau pour un
+atelier pâtisserie** (avec QR code) se dévoile… mais seulement à partir de la
+date choisie (`dateRevelation`, par défaut le samedi 14 novembre 2026 à 18 h,
+heure de Paris). Avant, un compte à rebours s'affiche.
 
-**Comment on joue** : on touche un meuble, la cheffe y va et s'en sert (on peut
-enchaîner plusieurs meubles). Elle ne porte qu'une chose à la fois.
+| Jour | Nouveauté | Saladier (3 ingrédients) | Four | Décoration |
+|---|---|---|---|---|
+| 1 | Cookies | farine + beurre + chocolat | ✔ | – |
+| 2 | Cupcake | farine + œufs + beurre | ✔ | chantilly |
+| 3 | Tarte aux fraises | farine + beurre + sucre | ✔ | fraises |
+| 4 | Fraisier | farine + œufs + sucre | ✔ | chantilly + fraises |
+| 5 | Gâteau d'anniversaire | farine + œufs + chocolat | ✔ | chantilly + bougies |
 
-| Dessert | Saladier (3 ingrédients) | Four | Plan de travail |
-|---|---|---|---|
-| 🍪 Cookies | 🌾 farine + 🧈 beurre + 🍫 chocolat | 🔥 | – |
-| 🧁 Cupcake | 🌾 farine + 🥚 œufs + 🍬 sucre | 🔥 | 🍦 chantilly |
-| 🥧 Tarte aux fraises | 🌾 farine + 🧈 beurre + 🍬 sucre | 🔥 | 🍓 fraises |
-| 🍰 Fraisier | 🌾 farine + 🥚 œufs + 🍬 sucre | 🔥 | 🍦 chantilly + 🍓 fraises |
+**Aides** : tickets de commande en haut (ingrédients cochés au fur et à mesure,
+touchables pour voir la recette en grand), flèches jaunes et message en bas
+(désactivables dans la pause), premier client de chaque nouvelle recette sans
+limite de temps, clients plus patients après un départ. Pas de « game over ».
+La progression est enregistrée dans le navigateur (on peut jouer un jour à la fois).
 
-Les recettes se débloquent au fil de la journée. Un gâteau oublié au four finit
-par brûler. Le premier client est un tutoriel (sa patience ne baisse pas), des
-flèches jaunes et un message en bas indiquent toujours la prochaine étape, et si
-un client s'en va, les suivants deviennent un peu plus patients. Il n'y a pas
-de « game over » : la journée se termine quand assez de clients sont servis.
+## Personnaliser
 
-## Personnaliser le bon
-
-Tout se règle dans `js/config.js` :
-prénom, titre, description, code, validité, signature et contenu du QR code
-(`qrContenu`), ainsi que le nombre de clients à servir (`clientsAServir`) et la
-patience des clients (`patience`).
-
-- `qrContenu: ""` → le QR contient un texte récapitulant le bon.
-- `qrContenu: "https://…"` → le QR ouvre ce lien (par ex. le bon ou la page de
-  réservation du prestataire de l'atelier).
+Tout se règle dans `js/config.js` : prénom, textes du bon, code, contenu du QR
+code (`qrContenu` : texte automatique si vide, ou un lien `https://…`), date de
+révélation et patience des clients. Les recettes et les jours sont dans
+`js/donnees.js`.
 
 ## Tester
 
-- Ouvrir `index.html` dans un navigateur, ou lancer `python3 -m http.server`
-  puis aller sur http://localhost:8000.
-- Ajouter `?fin` à l'adresse pour aller directement au bon cadeau
-  (ex. `index.html?fin`).
+- Ouvrir `index.html` dans un navigateur (ou `python3 -m http.server` puis http://localhost:8000).
+- `index.html?apercu` : tous les jours et le cadeau sont débloqués, rien n'est sauvegardé.
+- `index.html?reset` : efface la progression enregistrée sur cet appareil.
 
-## Mettre en ligne (GitHub Pages)
+⚠️ Le verrou de date est un verrou « de bonne foi » : le contenu du bon est
+dans les fichiers du jeu, et quelqu'un de curieux peut le lire dans le code
+source ou utiliser `?apercu`. L'heure est prise sur le serveur qui héberge le
+jeu quand c'est possible (changer l'heure du téléphone ne suffit donc pas une
+fois en ligne), sinon sur l'appareil.
 
-Sur GitHub : *Settings → Pages → Build and deployment → Deploy from a branch*,
-choisir la branche et le dossier `/ (root)`. Le jeu sera disponible à l'adresse
-`https://<utilisateur>.github.io/<dépôt>/`.
+## Mettre en ligne
+
+GitHub Pages (dépôt public : *Settings → Pages → Deploy from a branch*) ou
+Netlify Drop (glisser le dossier sur https://app.netlify.com/drop).
+
+## Images
+
+- Illustrations 3D **Fluent Emoji** de Microsoft (licence MIT, voir
+  `assets/img/LICENCE-fluent-emoji.txt`).
+- Farine, sucre, chantilly, bougies, tarte aux fraises, gâteaux cuits et pâtes :
+  dessinés pour le jeu (`assets/sources/generer_svg.py`). Pour les régénérer :
+  `python3 assets/sources/generer_svg.py`, puis
+  `node assets/sources/rasteriser.js assets/sources <dossier_png>` (Playwright),
+  puis `python3 assets/sources/construire_images.py <dossier_png> <dossier_fluent>`.
 
 ## Crédits
 
-QR code généré par [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator)
-de Kazuhiko Arase (licence MIT), copié dans `vendor/qrcode.js`.
+QR code : [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator)
+de Kazuhiko Arase (licence MIT), dans `vendor/qrcode.js`.

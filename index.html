@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧁</text></svg>">
+<link rel="icon" href="assets/img/cupcake.png">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -17,73 +17,110 @@
 
 <!-- ============ Accueil ============ -->
 <section class="ecran actif" id="ecran-accueil">
-  <div class="grand-emoji flotte">🧁</div>
+  <img class="grand-visuel flotte" src="assets/img/cupcake.png" alt="">
   <h1 id="titre-accueil">Joyeux anniversaire&nbsp;!</h1>
-  <p>Aujourd'hui, c'est <strong>toi la cheffe</strong> de la pâtisserie&nbsp;!</p>
-  <p>Les clients arrivent au comptoir avec leurs commandes. Prépare-leur de bons desserts avant qu'ils ne s'impatientent…<br>et une surprise t'attendra à la fermeture&nbsp;😉</p>
-  <button class="bouton" id="btn-commencer">Entrer en cuisine&nbsp;!</button>
+  <p>Cette semaine, c'est <strong>toi la cheffe</strong> de la pâtisserie&nbsp;!</p>
+  <p>Chaque jour, de nouveaux clients et de nouvelles recettes… et à la fin de la semaine, une surprise t'attend&nbsp;😉</p>
+  <button class="bouton" id="btn-commencer" disabled>Chargement…</button>
+</section>
+
+<!-- ============ La semaine ============ -->
+<section class="ecran" id="ecran-semaine">
+  <div class="colonne">
+    <div class="bandeau-apercu" id="bandeau-apercu" hidden>Mode aperçu : tout est débloqué et rien n'est sauvegardé.</div>
+    <h2>Ta semaine à la pâtisserie</h2>
+    <div id="liste-jours"></div>
+    <div class="carte-cadeau" id="carte-cadeau"></div>
+  </div>
 </section>
 
 <!-- ============ La cuisine ============ -->
 <section class="ecran" id="ecran-cuisine">
   <header id="hud">
-    <div class="hud-bloc" title="Clients servis"><span class="emoji">🛎️</span><b id="hud-servis">0/8</b><div class="mini-jauge"><div id="hud-jauge"></div></div></div>
-    <div class="hud-bloc" title="Pourboires"><span class="emoji">🪙</span><b id="hud-pieces">0</b></div>
+    <div class="hud-bloc"><b id="hud-jour">Jour 1</b></div>
+    <div class="hud-bloc" title="Clients servis"><img src="assets/img/cloche.png" alt=""><b id="hud-servis">0/4</b><div class="mini-jauge"><div id="hud-jauge"></div></div></div>
+    <div class="hud-bloc" title="Pourboires"><img src="assets/img/piece.png" alt=""><b id="hud-pieces">0</b></div>
     <button id="btn-pause" aria-label="Pause et recettes">⏸️</button>
   </header>
+  <div id="tickets"></div>
   <div id="zone-cuisine"><canvas id="cuisine"></canvas></div>
-  <footer id="pied">
-    <div id="indice"></div>
-    <div id="bandeau"></div>
-  </footer>
+  <footer id="pied"><div id="indice"></div></footer>
 
-  <div class="surcouche" id="ov-intro">
+  <div class="surcouche" id="ov-jour">
     <div class="carte">
-      <h2>Comment ça marche&nbsp;?</h2>
-      <ul class="regles">
-        <li><span class="emoji">👆</span><span><b>Touche un meuble</b> : ta cheffe y va et s'en sert. Tu peux toucher plusieurs meubles à la suite.</span></li>
+      <h2 id="jour-titre">Jour 1</h2>
+      <p id="jour-texte"></p>
+      <ul class="regles" id="jour-regles">
+        <li><span class="emoji">👆</span><span><b>Touche un meuble</b> : ta cheffe y va et s'en sert. Tu peux en toucher plusieurs à la suite.</span></li>
         <li><span class="emoji">✋</span><span>Elle ne porte <b>qu'une chose à la fois</b>.</span></li>
-        <li><span class="emoji">🥣</span><span>Verse <b>3 ingrédients</b> dans un saladier pour faire une pâte…</span></li>
-        <li><span class="emoji">🔥</span><span>… fais-la <b>cuire au four</b> (sors-la avant qu'elle ne brûle&nbsp;!)…</span></li>
-        <li><span class="emoji">🍓</span><span>… <b>décore</b> sur le plan de travail si la recette le demande…</span></li>
-        <li><span class="emoji">🛎️</span><span>… et <b>sers au comptoir</b> avant que la jauge du client ne se vide.</span></li>
+        <li><span class="emoji">🎫</span><span>En haut, les <b>tickets</b> montrent ce que veut chaque client : les ingrédients cochés sont déjà dans le saladier. Touche un ticket pour voir la recette en grand.</span></li>
+        <li><span class="emoji">⏳</span><span>Sers chaque client avant que <b>sa jauge</b> ne se vide.</span></li>
         <li><span class="emoji">💡</span><span>Pas de panique : les <b>flèches jaunes</b> et le message en bas te guident.</span></li>
       </ul>
-      <p><b>Objectif&nbsp;: servir <span id="intro-objectif">8</span> clients.</b></p>
-      <button class="bouton" id="btn-ouvrir">Ouvrir la boutique&nbsp;!</button>
+      <p class="sous-titre">Nouvelle recette</p>
+      <div id="jour-fiche"></div>
+      <div class="pied-carte">
+        <p><b>Objectif&nbsp;: servir <span id="jour-objectif">4</span> clients.</b></p>
+        <button class="bouton" id="btn-lancer-jour">Ouvrir la boutique&nbsp;!</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="surcouche" id="ov-recette" hidden>
+    <div class="carte">
+      <div id="recette-fiche"></div>
+      <div class="pied-carte"><button class="bouton" id="btn-fermer-recette">J'ai compris&nbsp;!</button></div>
     </div>
   </div>
 
   <div class="surcouche" id="ov-pause" hidden>
     <div class="carte">
       <h2>Pause ☕</h2>
-      <p>Le livre de recettes&nbsp;:</p>
+      <p class="sous-titre">Le livre de recettes</p>
       <div id="livre"></div>
-      <button class="bouton" id="btn-reprendre">Reprendre</button>
+      <button class="bouton secondaire petit" id="btn-fleches">💡 Flèches d'aide : oui</button>
+      <div class="actions pied-carte">
+        <button class="bouton" id="btn-reprendre">Reprendre</button>
+        <button class="bouton secondaire" id="btn-quitter">Menu</button>
+      </div>
     </div>
   </div>
 
   <div class="surcouche" id="ov-fin" hidden>
     <div class="carte">
-      <h2>Journée terminée&nbsp;! 🎉</h2>
+      <h2 id="fin-titre">Journée terminée&nbsp;!</h2>
       <div id="fin-etoiles"></div>
       <div class="stats">
-        <span>🛎️ Clients servis</span><b id="fin-servis">0</b>
-        <span>😤 Clients partis</span><b id="fin-partis">0</b>
-        <span>🪙 Pourboires</span><b id="fin-pieces">0</b>
+        <span>Clients servis</span><b id="fin-servis">0</b>
+        <span>Clients partis</span><b id="fin-partis">0</b>
+        <span>Pourboires</span><b id="fin-pieces">0</b>
       </div>
-      <p>Quelle cheffe&nbsp;! Il est temps de fermer la boutique…</p>
-      <button class="bouton" id="btn-fermer">Fermer la boutique 🌙</button>
+      <p id="fin-texte"></p>
+      <div class="actions">
+        <button class="bouton" id="btn-jour-suivant">Jour suivant ▶</button>
+        <button class="bouton" id="btn-fermer-boutique" hidden>Fermer la boutique 🌙</button>
+        <button class="bouton secondaire" id="btn-menu">Menu</button>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- ============ Cadeau à ouvrir ============ -->
+<!-- ============ Le cadeau ============ -->
 <section class="ecran" id="ecran-cadeau">
-  <h2>Mais… qu'est-ce que c'est&nbsp;?</h2>
-  <p>En rangeant, tu trouves un paquet sur le comptoir.<br>Il y a ton nom dessus&nbsp;!</p>
-  <p><strong>Touche-le pour l'ouvrir.</strong></p>
-  <button id="cadeau" aria-label="Ouvrir le cadeau">🎁</button>
+  <div id="cadeau-verrouille">
+    <div class="cadeau-ferme"><img src="assets/img/cadeau.png" alt=""><img class="cadenas" src="assets/img/cadenas.png" alt=""></div>
+    <h2>Patience…</h2>
+    <p>Ton cadeau est bien emballé&nbsp;! Il sera dévoilé<br><strong id="cadeau-date"></strong>.</p>
+    <p class="compte-grand" id="cadeau-compte"></p>
+    <p>En attendant, tu peux rejouer tes journées préférées.</p>
+    <button class="bouton secondaire" onclick="Semaine.afficher()">Retour à la semaine</button>
+  </div>
+  <div id="cadeau-pret" hidden>
+    <h2>Mais… qu'est-ce que c'est&nbsp;?</h2>
+    <p>En rangeant, tu trouves un paquet sur le comptoir.<br>Il y a ton nom dessus&nbsp;!</p>
+    <p><strong>Touche-le pour l'ouvrir.</strong></p>
+    <button id="cadeau" aria-label="Ouvrir le cadeau"><img src="assets/img/cadeau.png" alt=""></button>
+  </div>
 </section>
 
 <!-- ============ Le bon cadeau ============ -->
@@ -100,7 +137,7 @@
   </div>
   <div class="actions-bon">
     <button class="bouton" id="btn-telecharger">📥 Garder mon bon</button>
-    <button class="bouton secondaire" id="btn-rejouer">🔁 Rejouer</button>
+    <button class="bouton secondaire" id="btn-retour-semaine">Retour</button>
   </div>
   <p class="astuce">Astuce&nbsp;: enregistre l'image du bon pour le présenter le jour de l'atelier.</p>
 </section>
@@ -109,15 +146,15 @@
 
 <script src="vendor/qrcode.js"></script>
 <script src="js/config.js"></script>
+<script src="js/outils.js"></script>
 <script src="js/sons.js"></script>
+<script src="js/donnees.js"></script>
+<script src="js/progression.js"></script>
 <script src="js/cuisine.js"></script>
 <script src="js/bon.js"></script>
 <script>
-  function echapper(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
-
   $("#titre-accueil").innerHTML = `Joyeux anniversaire<br>${echapper(CONFIG.prenom)}&nbsp;!`;
   document.title = `La pâtisserie de ${CONFIG.prenom}`;
-  $("#intro-objectif").textContent = CONFIG.clientsAServir;
 
   $("#son").addEventListener("click", () => {
     Son.coupe = !Son.coupe;
@@ -125,16 +162,17 @@
     $("#son").setAttribute("aria-label", Son.coupe ? "Activer le son" : "Couper le son");
   });
 
+  Progression.charger();
+  Horloge.synchroniser();
   Cuisine.init();
-  $("#btn-commencer").addEventListener("click", () => {
-    Son.init(); Son.joyeux();
-    afficher("ecran-cuisine");
-    Cuisine.preparer();
-  });
   window.addEventListener("resize", redimConfettis);
 
-  // Raccourci de test : ajouter ?fin à l'adresse pour voir directement le bon
-  if (new URLSearchParams(location.search).has("fin")) { remplirBon(); afficher("ecran-bon"); }
+  const btn = $("#btn-commencer");
+  chargerImages(IMAGES).then(() => {
+    btn.disabled = false;
+    btn.textContent = Progression.joursFinis() > 0 ? "Reprendre ma semaine" : "Entrer en cuisine !";
+  });
+  btn.addEventListener("click", () => { Son.init(); Son.joyeux(); Semaine.afficher(); });
 </script>
 </body>
 </html>
