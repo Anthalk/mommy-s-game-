@@ -37,7 +37,7 @@ const FAMILLE = {
   },
   papa: {
     nom: "Papa",                                  // ✏️ son prénom
-    avatar: { peau: "#eebd98", cheveux: "#4a3020", coupe: "court", frange: false, barbe: "courte", lunettes: null, haut: "#5b7fb5" },
+    avatar: { peau: "#c98e64", cheveux: "#2e1f17", coupe: "court", frange: false, barbe: "courte", lunettes: null, haut: "#5b7fb5" },
     recette: "tarte",
     bonjour: "Bonjour madame la cheffe ! Une tarte aux fraises, et pas de chichis.",
     merci: "Encore meilleure que celle de la boulangerie !",

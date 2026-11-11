@@ -260,8 +260,7 @@ def oeil(x, y, rx, ry, iris, pupille_rx=None, pupille_ry=None):
 
 
 def winter(balle=False):
-    d = (NOIR + BLANC + ROSE + rad("brun", (0, "#9a5a2e"), (1, "#4e2a12"), cx=.4, cy=.3, r=.8)
-         + rad("noeud", (0, "#ffb3c8"), (1, "#ef6f96"), cx=.4, cy=.3, r=.9))
+    d = (NOIR + BLANC + ROSE + rad("brun", (0, "#9a5a2e"), (1, "#4e2a12"), cx=.4, cy=.3, r=.8))
     c = (
         # oreilles semi-dressées (pointes cassées vers l'avant)
         '<path d="M52 118 C38 70 44 34 62 26 C78 22 98 50 108 78 Z" fill="url(#noir)"/>'
@@ -272,9 +271,6 @@ def winter(balle=False):
         '<path d="M192 96 C196 70 192 52 184 46 C174 52 166 66 162 82 Z" fill="#c98b9a" opacity=".55"/>'
         # tête
         '<ellipse cx="128" cy="140" rx="90" ry="82" fill="url(#noir)"/>'
-        # petit nœud rose (Winter est une chienne)
-        '<g transform="rotate(-20 70 70)"><path d="M70 70 L44 54 Q38 70 44 86 Z" fill="url(#noeud)"/><path d="M70 70 L96 54 Q102 70 96 86 Z" fill="url(#noeud)"/>'
-        '<circle cx="70" cy="70" r="9" fill="#e0567a"/></g>'
         # liseré blanc + museau blanc (typique du border collie)
         '<path d="M118 60 Q128 54 138 60 L152 132 Q128 142 104 132 Z" fill="url(#blanc)"/>'
         '<ellipse cx="128" cy="178" rx="62" ry="44" fill="url(#blanc)"/>'
