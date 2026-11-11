@@ -1,9 +1,14 @@
 "use strict";
 /* Bon cadeau (affichage, PDF téléchargeable) et confettis */
 /* ===================== LE CADEAU ===================== */
+const siteCourt = () => (CONFIG.lien || "").replace(/^https?:\/\//, "").replace(/\/$/, "");
+
 function remplirBon() {
   $("#bon-titre").textContent = CONFIG.titreBon;
-  $("#bon-pour").textContent = `Offert à ${CONFIG.prenom} pour son anniversaire`;
+  $("#bon-pour").textContent = CONFIG.dedicace;
+  const l = $("#bon-lien");
+  l.hidden = !CONFIG.lien; l.href = CONFIG.lien || "#";
+  l.textContent = "À utiliser sur " + siteCourt();
   $("#bon-details").textContent = CONFIG.details;
   $("#bon-code").textContent = CONFIG.code;
   $("#bon-validite").textContent = CONFIG.validite;
@@ -76,7 +81,7 @@ async function imageDuBon() {
   c.font = '84px Pacifico, cursive'; c.fillStyle = "#d65a87";
   for (const l of lignes(c, CONFIG.titreBon, W - 260)) { c.fillText(l, W / 2, y); y += 100; }
   c.font = '800 40px Nunito, sans-serif'; c.fillStyle = "#5b3a29";
-  for (const l of lignes(c, `Offert à ${CONFIG.prenom} pour son anniversaire`, W - 260)) { c.fillText(l, W / 2, y); y += 52; }
+  for (const l of lignes(c, CONFIG.dedicace, W - 260)) { c.fillText(l, W / 2, y); y += 52; }
   y += 10;
   c.font = '400 34px Nunito, sans-serif';
   for (const l of lignes(c, CONFIG.details, W - 300)) { c.fillText(l, W / 2, y); y += 46; }
@@ -90,7 +95,15 @@ async function imageDuBon() {
     let taille = 76;
     do { c.font = `800 ${taille}px Nunito, sans-serif`; taille -= 4; } while (c.measureText(CONFIG.code).width > W - 360 && taille > 30);
     c.fillStyle = "#5b3a29"; c.fillText(CONFIG.code, W / 2, y + 165);
-    y += 230 + 80;
+    y += 230 + 70;
+  }
+  if (CONFIG.lien) {   // adresse du site (cliquable dans le PDF)
+    c.font = '800 36px Nunito, sans-serif'; c.fillStyle = "#d65a87";
+    const t = "À utiliser sur " + siteCourt(), w = c.measureText(t).width;
+    c.fillText(t, W / 2, y);
+    c.fillRect(W / 2 - w / 2, y + 8, w, 3);
+    cv.lien = { x: W / 2 - w / 2 - 10, y: y - 40, w: w + 20, h: 60 };
+    y += 64;
   }
   c.fillStyle = "#5b3a29";
   c.font = '400 32px Nunito, sans-serif'; c.globalAlpha = .75;
@@ -120,13 +133,17 @@ function pdfDepuisCanvas(cv) {
   ajoute("%PDF-1.4\n"); ajoute(new Uint8Array([37, 226, 227, 207, 211, 10]));
   objet(1, "<< /Type /Catalog /Pages 2 0 R >>");
   objet(2, "<< /Type /Pages /Kids [3 0 R] /Count 1 >>");
-  objet(3, `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PW} ${PH}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`);
+  const annot = cv.lien && CONFIG.lien ? " /Annots [7 0 R]" : "";
+  objet(3, `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PW} ${PH}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R${annot} >>`);
   objet(4, `<< /Type /XObject /Subtype /Image /Width ${cv.width} /Height ${cv.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpeg.length} >>\nstream\n`, jpeg, "\nendstream");
   objet(5, `<< /Length ${dessin.length} >>\nstream\n`, dessin, "\nendstream");
   objet(6, "<< /Title (Bon cadeau - Atelier patisserie) /Producer (La patisserie de Maman) >>");
+  // lien cliquable vers le site (coordonnées du canvas → points PDF, axe vertical inversé)
+  const L = cv.lien, rect = L ? [ix + L.x * k, iy + (cv.height - L.y - L.h) * k, ix + (L.x + L.w) * k, iy + (cv.height - L.y) * k].map((v) => v.toFixed(2)).join(" ") : "";
+  objet(7, `<< /Type /Annot /Subtype /Link /Rect [${rect || "0 0 0 0"}] /Border [0 0 0] /A << /S /URI /URI (${(CONFIG.lien || "").replace(/[()\\]/g, "")}) >> >>`);
   const xref = taille;
-  ajoute(`xref\n0 7\n0000000000 65535 f \n${positions.slice(1).map((p) => String(p).padStart(10, "0") + " 00000 n \n").join("")}`);
-  ajoute(`trailer\n<< /Size 7 /Root 1 0 R /Info 6 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
+  ajoute(`xref\n0 8\n0000000000 65535 f \n${positions.slice(1).map((p) => String(p).padStart(10, "0") + " 00000 n \n").join("")}`);
+  ajoute(`trailer\n<< /Size 8 /Root 1 0 R /Info 6 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
   return new Blob(morceaux, { type: "application/pdf" });
 }
 

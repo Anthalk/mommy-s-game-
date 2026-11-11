@@ -5,7 +5,9 @@ const CONFIG = {
   // ----- Le bon cadeau -----
   prenom: "Maman",                          // Prénom ou surnom affiché partout
   titreBon: "Atelier pâtisserie",           // Titre du bon
-  details: "Un atelier pour apprendre à réaliser de délicieuses pâtisseries… et repartir avec ses créations !",
+  dedicace: "Pour Maman, cheffe pâtissière. Cette fois, pour de vrai.",   // Sous le titre du bon
+  details: "Une carte cadeau pour un atelier pâtisserie à L'Atelier de Nils.",
+  lien: "https://www.latelierdenils.fr/",   // Site où utiliser la carte cadeau
 
   // 👉👉👉 LE CODE DE LA CARTE CADEAU : remplace CODE-A-REMPLIR par ton code (garde les guillemets)
   code: "CODE-A-REMPLIR",
