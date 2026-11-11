@@ -1,0 +1,155 @@
+:root {
+  --creme: #fff4e8;
+  --creme-2: #ffe9d4;
+  --rose: #ef7fa6;
+  --rose-fonce: #d65a87;
+  --choco: #5b3a29;
+  --choco-clair: #8a5a40;
+  --or: #e9b44c;
+  --blanc: #fffdf9;
+  --ombre: 0 10px 30px rgba(91, 58, 41, .18);
+  --emoji: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+  margin: 0; height: 100%; overflow: hidden;
+  color: var(--choco);
+  font-family: "Nunito", system-ui, sans-serif;
+  -webkit-user-select: none; user-select: none;
+}
+body {
+  background:
+    radial-gradient(circle at 15% 10%, #ffe1ea 0 12%, transparent 13%),
+    radial-gradient(circle at 90% 85%, #ffe1ea 0 10%, transparent 11%),
+    radial-gradient(circle at 85% 15%, #fff0c9 0 7%, transparent 8%),
+    var(--creme);
+}
+
+.ecran {
+  position: fixed; inset: 0;
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
+  text-align: center;
+}
+.ecran.actif { display: flex; animation: apparait .5s ease both; }
+@keyframes apparait { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+h1, h2 { font-family: "Pacifico", cursive; font-weight: 400; margin: .2em 0; line-height: 1.25; }
+h1 { font-size: clamp(2rem, 9vw, 3.2rem); color: var(--rose-fonce); }
+h2 { font-size: clamp(1.5rem, 6.5vw, 2.2rem); color: var(--rose-fonce); }
+p { font-size: clamp(1rem, 4.2vw, 1.2rem); line-height: 1.5; max-width: 30em; margin: .5em auto; }
+.emoji { font-family: var(--emoji); }
+.grand-emoji { font-size: clamp(5rem, 28vw, 9rem); line-height: 1; font-family: var(--emoji); }
+.flotte { animation: flotte 3s ease-in-out infinite; display: inline-block; }
+@keyframes flotte { 50% { transform: translateY(-10px) rotate(-4deg); } }
+
+.bouton {
+  font: 800 clamp(1.05rem, 4.6vw, 1.3rem) "Nunito", sans-serif;
+  color: #fff; background: var(--rose);
+  border: none; border-radius: 999px;
+  padding: .8em 1.7em; margin-top: 1em;
+  box-shadow: 0 6px 0 var(--rose-fonce), var(--ombre);
+  cursor: pointer; transition: transform .08s, box-shadow .08s;
+}
+.bouton:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--rose-fonce), var(--ombre); }
+.bouton.secondaire { background: var(--blanc); color: var(--choco); box-shadow: 0 6px 0 #e7cdb6, var(--ombre); }
+.bouton.secondaire:active { box-shadow: 0 2px 0 #e7cdb6, var(--ombre); }
+
+.carte {
+  background: var(--blanc); border-radius: 24px; box-shadow: var(--ombre);
+  padding: 20px 18px; max-width: 430px; width: 100%;
+  max-height: 100%; overflow-y: auto;
+}
+
+#son {
+  position: fixed; top: max(8px, env(safe-area-inset-top)); right: 10px; z-index: 50;
+  width: 42px; height: 42px; border-radius: 50%; border: none;
+  background: rgba(255,255,255,.9); box-shadow: var(--ombre);
+  font-size: 20px; font-family: var(--emoji); cursor: pointer;
+}
+
+/* ============================ La cuisine ============================ */
+#ecran-cuisine { padding: 0; justify-content: flex-start; align-items: stretch; }
+#hud {
+  display: flex; align-items: center; gap: 8px;
+  padding: max(8px, env(safe-area-inset-top)) 60px 6px 10px;
+  min-height: 56px;
+}
+.hud-bloc {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--blanc); border-radius: 999px; padding: 6px 12px;
+  box-shadow: 0 3px 10px rgba(91,58,41,.12); font-weight: 800; font-size: 1rem;
+}
+.hud-bloc .emoji { font-size: 1.1rem; }
+.mini-jauge { width: 54px; height: 8px; background: var(--creme-2); border-radius: 99px; overflow: hidden; }
+.mini-jauge > div { height: 100%; width: 0; background: linear-gradient(90deg, var(--or), var(--rose)); transition: width .4s; }
+#btn-pause {
+  margin-left: auto; width: 42px; height: 42px; border-radius: 50%; border: none;
+  background: var(--blanc); box-shadow: var(--ombre); font-size: 18px; font-family: var(--emoji); cursor: pointer;
+}
+#zone-cuisine { position: relative; flex: 1; min-height: 0; margin: 0 6px; }
+#cuisine { position: absolute; inset: 0; touch-action: none; }
+#pied { padding: 6px 10px max(10px, env(safe-area-inset-bottom)); width: 100%; max-width: 640px; margin: 0 auto; }
+#indice {
+  min-height: 2.9em; display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: clamp(.92rem, 3.9vw, 1.08rem); line-height: 1.3;
+  background: #fff7d9; border: 2px solid #f6d77c; border-radius: 14px; padding: 6px 10px;
+  transition: background .2s, border-color .2s;
+}
+#indice:empty { visibility: hidden; }
+#indice.message { background: var(--blanc); border-color: var(--rose); }
+#bandeau { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin-top: 6px; min-height: 34px; }
+.puce {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,.75); border-radius: 12px; padding: 3px 9px;
+  font-size: clamp(.8rem, 3.4vw, .95rem); border: 2px solid transparent;
+}
+.puce.commande { background: var(--blanc); border-color: var(--rose); }
+.puce .gros { font-size: 1.35em; }
+.puce i, .fiche i { font-style: normal; font-family: "Nunito", sans-serif; font-weight: 800; opacity: .6; }
+
+.surcouche {
+  position: absolute; inset: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255, 244, 232, .9); padding: 14px;
+}
+.surcouche[hidden] { display: none; }
+.regles { text-align: left; padding: 0; margin: 10px 0; list-style: none; }
+.regles li { display: flex; gap: 10px; align-items: flex-start; margin: 9px 0; font-size: clamp(.95rem, 3.9vw, 1.05rem); line-height: 1.4; }
+.regles li > .emoji { font-size: 1.4rem; line-height: 1.1; flex: none; width: 1.6rem; text-align: center; }
+.fiche { display: flex; align-items: center; gap: 12px; text-align: left; background: var(--creme); border-radius: 14px; padding: 8px 12px; margin: 8px 0; }
+.fiche .gros { font-size: 2.2rem; }
+.stats { display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; text-align: left; max-width: 260px; margin: 12px auto; font-size: 1.05rem; }
+.stats b { text-align: right; }
+#fin-etoiles { font-size: 2.4rem; letter-spacing: .1em; color: var(--or); font-family: var(--emoji); }
+
+/* ============================ Le cadeau ============================ */
+#cadeau {
+  font-size: clamp(7rem, 40vw, 12rem); line-height: 1; font-family: var(--emoji);
+  background: none; border: none; cursor: pointer; padding: 0;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse { 50% { transform: scale(1.08) rotate(3deg); } }
+#cadeau.secoue { animation: secoue .5s ease-in-out 2; }
+@keyframes secoue { 25% { transform: rotate(-12deg) scale(1.1); } 75% { transform: rotate(12deg) scale(1.1); } }
+
+#ecran-bon { justify-content: flex-start; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-top: max(62px, calc(env(safe-area-inset-top) + 52px)); }
+.bon {
+  position: relative; max-width: 380px; width: 100%; margin: 8px auto 0;
+  background: var(--blanc); border-radius: 26px; padding: 26px 22px 22px;
+  box-shadow: var(--ombre); border: 3px dashed var(--rose);
+  animation: bon-arrive .9s cubic-bezier(.2,1.4,.4,1) both;
+}
+@keyframes bon-arrive { from { transform: scale(.3) rotate(-8deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.bon .etiquette { display: inline-block; background: var(--rose); color: #fff; font-weight: 800; letter-spacing: .25em; font-size: .85rem; padding: 5px 14px 5px 18px; border-radius: 999px; }
+.bon h2 { margin: .25em 0 .1em; font-size: clamp(1.8rem, 8vw, 2.3rem); }
+.bon .pour { font-weight: 700; margin: 0; }
+.bon .details { font-size: 1rem; margin: .6em auto; }
+#qr { display: block; margin: 14px auto 6px; width: min(62vw, 230px); height: auto; image-rendering: pixelated; border-radius: 10px; }
+.bon .code { font-weight: 800; letter-spacing: .08em; margin: 4px 0; }
+.bon .validite { font-size: .9rem; opacity: .75; margin: 2px 0; }
+.bon .signature { font-family: "Pacifico", cursive; font-size: 1.25rem; color: var(--choco-clair); margin: .7em 0 0; }
+.actions-bon { display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: center; margin: 10px 0 24px; }
+.astuce { font-size: .9rem; opacity: .75; max-width: 380px; }
+
+#confettis { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 40; }

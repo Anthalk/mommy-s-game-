@@ -1,21 +1,33 @@
-# 🎂 Le gâteau de Maman — jeu d'anniversaire
+# 🧁 La pâtisserie de Maman — jeu d'anniversaire
 
-Petit jeu web (téléphone ou ordinateur) en 4 étapes. À la fin, un cadeau s'ouvre
-et révèle un **bon cadeau pour un atelier pâtisserie**, avec son QR code.
+Petit jeu de gestion de cuisine (téléphone ou ordinateur). Des clients arrivent
+au comptoir avec une commande et une jauge de patience ; il faut préparer leurs
+desserts avant qu'ils ne s'impatientent. À la fin de la journée, un paquet
+attend sur le comptoir : il révèle un **bon cadeau pour un atelier pâtisserie**
+avec son QR code.
 
-1. **Les courses** : déplacer le saladier pour attraper les ingrédients
-   (œufs, farine, sucre, beurre, chocolat, fraises) en évitant les intrus.
-2. **Fouette !** : tapoter vite pour remplir la jauge.
-3. **La cuisson** : sortir le gâteau quand il est doré (la zone s'élargit à chaque raté).
-4. **Les bougies** : les toucher, ou souffler pour de vrai dans le micro.
+**Comment on joue** : on touche un meuble, la cheffe y va et s'en sert (on peut
+enchaîner plusieurs meubles). Elle ne porte qu'une chose à la fois.
 
-Pas de « game over » : le jeu est fait pour être fini.
+| Dessert | Saladier (3 ingrédients) | Four | Plan de travail |
+|---|---|---|---|
+| 🍪 Cookies | 🌾 farine + 🧈 beurre + 🍫 chocolat | 🔥 | – |
+| 🧁 Cupcake | 🌾 farine + 🥚 œufs + 🍬 sucre | 🔥 | 🍦 chantilly |
+| 🥧 Tarte aux fraises | 🌾 farine + 🧈 beurre + 🍬 sucre | 🔥 | 🍓 fraises |
+| 🍰 Fraisier | 🌾 farine + 🥚 œufs + 🍬 sucre | 🔥 | 🍦 chantilly + 🍓 fraises |
+
+Les recettes se débloquent au fil de la journée. Un gâteau oublié au four finit
+par brûler. Le premier client est un tutoriel (sa patience ne baisse pas), des
+flèches jaunes et un message en bas indiquent toujours la prochaine étape, et si
+un client s'en va, les suivants deviennent un peu plus patients. Il n'y a pas
+de « game over » : la journée se termine quand assez de clients sont servis.
 
 ## Personnaliser le bon
 
-Tout se règle dans le bloc `CONFIG` en haut du script de `index.html` :
-prénom, titre, description, code, validité, signature, nombre de bougies et
-contenu du QR code (`qrContenu`).
+Tout se règle dans `js/config.js` :
+prénom, titre, description, code, validité, signature et contenu du QR code
+(`qrContenu`), ainsi que le nombre de clients à servir (`clientsAServir`) et la
+patience des clients (`patience`).
 
 - `qrContenu: ""` → le QR contient un texte récapitulant le bon.
 - `qrContenu: "https://…"` → le QR ouvre ce lien (par ex. le bon ou la page de
@@ -32,8 +44,7 @@ contenu du QR code (`qrContenu`).
 
 Sur GitHub : *Settings → Pages → Build and deployment → Deploy from a branch*,
 choisir la branche et le dossier `/ (root)`. Le jeu sera disponible à l'adresse
-`https://<utilisateur>.github.io/<dépôt>/`. Le micro (souffler les bougies)
-ne fonctionne qu'en HTTPS, ce qui est le cas sur GitHub Pages.
+`https://<utilisateur>.github.io/<dépôt>/`.
 
 ## Crédits
 
