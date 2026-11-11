@@ -93,6 +93,8 @@ const SCENES = {
     { qui: "maman", texte: "Pompes funèbres marbrerie d'Antony, bon…" },
     { qui: "maman", texte: "…" },
     { qui: "maman", texte: "Ah. Mauvais contexte." },
+    { qui: null, img: "telephone", texte: "Elle raccroche." },
+    { qui: "maman", texte: "Elle va se faire enculer la vieille !" },
     { qui: "moi", texte: "Maman. Cette semaine, c'est une pâtisserie. On vend des gâteaux, pas des pierres tombales." },
     { qui: "moi", texte: "Et le premier client, c'est moi. Je t'explique comment ça marche." },
   ],
