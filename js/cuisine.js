@@ -124,7 +124,7 @@ const Cuisine = {
     this.message = null; this.indices = { stations: [], texte: "" }; this.tIndice = 0;
     this.sigTickets = ""; this.idsTickets = [];
     this.P = PROGRAMME[i] || { invites: {}, winter: [] };
-    this.winter = null; this.winterVenues = 0;
+    this.winter = null; this.winterVenues = 0; this.boost = 0;
     this.bulles = []; this.bulle = null; $("#bulle").classList.remove("visible"); $("#pied").classList.remove("parle");
 
     afficher("ecran-cuisine");
@@ -350,6 +350,10 @@ const Cuisine = {
     this.effets.push({ type: "texte", txt: `+${pourboire}`, x: cl.x + .5, y: -.9, vie: 1.4, couleur: "#2e9a6a" });
     for (let i = 0; i < 4; i++) this.effets.push({ type: "coeur", x: cl.x + .5 + hasard(-.4, .4), y: -.7, vx: hasard(-.4, .4), vie: hasard(.9, 1.5) });
     if (cl.perso) this.parler(cl.perso, (FAMILLE[cl.perso] || ANIMAUX_FAMILLE[cl.perso]).merci);
+    if (cl.perso === "copine") {   // Camille, kiné : massage express
+      this.boost = 20;
+      this.parler("copine", "Petit massage express offert : ton dos est comme neuf, tu vas plus vite pendant 20 secondes !", 4);
+    }
     this.dire(cl.decouverte && this.jour === 0
       ? "Bravo, premier client servi ! 🎉 Les suivants arrivent…"
       : choisir(["Merci ! 😋", "Délicieux ! 💖", "Un régal ! ✨", "Parfait ! 👌", "Miam ! 😍"]), cl.decouverte ? 3 : 1.6);
@@ -400,6 +404,14 @@ const Cuisine = {
           if (c.fixe <= 0) { this.parler("suguru", ANIMAUX_FAMILLE.suguru.decide); Son.cloche(); }
           continue;
         }
+        if (c.perso === "soeur" || c.perso === "papa") {   // Minus chante de l'ATEEZ, Papa pense aux pyramides
+          c.manie = (c.manie ?? 2) - dt;
+          if (c.manie <= 0) {
+            c.manie = hasard(5, 8);
+            if (c.perso === "soeur") Son.fredonne();
+            this.effets.push({ type: "image", img: c.perso === "soeur" ? "notes" : "soucoupe", x: c.x + .5 + hasard(-.3, .3), y: -.6, vie: 1.8 });
+          }
+        }
         if (c.perso === "tsuki") {              // Tsuki réclame
           c.miaou -= dt;
           if (c.miaou <= 0) {
@@ -447,7 +459,7 @@ const Cuisine = {
     const j = this.joueur;
     if (j.chemin.length) {
       const cible = j.chemin[0], tx = cible.c + .5, ty = cible.r + .5;
-      const dx = tx - j.x, dy = ty - j.y, d = Math.hypot(dx, dy), pas = VITESSE * dt;
+      const dx = tx - j.x, dy = ty - j.y, d = Math.hypot(dx, dy), pas = VITESSE * (this.boost > 0 ? 1.6 : 1) * dt;
       if (Math.abs(dx) > .01) j.dir = Math.sign(dx);
       if (d <= pas) { j.x = tx; j.y = ty; j.chemin.shift(); } else { j.x += dx / d * pas; j.y += dy / d * pas; }
       j.marche += dt;
@@ -460,6 +472,7 @@ const Cuisine = {
       if (ch) j.chemin = ch; else j.action = null;
     } else j.marche = 0;
     j.geste = Math.max(0, j.geste - dt);
+    if (this.boost > 0) this.boost -= dt;
 
     for (const st of this.stations) {
       if (st.type === "bol" && st.etat === "melange") {
@@ -977,6 +990,7 @@ const Cuisine = {
     c.fillStyle = "#fff"; c.strokeStyle = "#e6d6c8"; c.lineWidth = 1;
     c.fillRect(x - T * .13, hy - T * .27, T * .26, T * .1); c.strokeRect(x - T * .13, hy - T * .27, T * .26, T * .1);
     for (const dx of [-.1, 0, .1]) { c.beginPath(); c.arc(x + dx * T, hy - T * .32, T * .1, 0, Math.PI * 2); c.fill(); }
+    if (this.boost > 0) dessinerImage(c, "eclair", x + T * .3, y - T * .05, T * .26);
     if (j.tenu) {
       c.fillStyle = "rgba(255,255,255,.9)";
       c.beginPath(); c.arc(x, hy - T * .64, T * .3, 0, Math.PI * 2); c.fill();
@@ -1028,6 +1042,8 @@ const Cuisine = {
         c.fillStyle = e.couleur; c.fillText(e.txt, x, y);
         if (e.piece !== false) dessinerImage(c, "piece", x + T * .2, y, T * .32);
         c.globalAlpha = 1;
+      } else if (e.type === "image") {
+        c.globalAlpha = Math.min(1, e.vie); dessinerImage(c, e.img, x, y - (1.8 - e.vie) * T * .4, T * .34); c.globalAlpha = 1;
       } else if (e.type === "coeur") {
         c.globalAlpha = Math.min(1, e.vie); dessinerImage(c, "coeur", x, y, T * .3); c.globalAlpha = 1;
       }

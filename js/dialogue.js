@@ -25,8 +25,10 @@ const Dialogue = {
         $("#dlg-nom").hidden = !p;
         $("#dlg-nom").textContent = p ? p.nom : "";
         $("#dlg-boite").classList.toggle("narration", !p);
+        $("#dlg-boite").classList.toggle("choc", l.son === "crac");
         $("#dlg-boite").classList.remove("arrive"); void $("#dlg-boite").offsetWidth; $("#dlg-boite").classList.add("arrive");
         if (l.son && Son[l.son]) Son[l.son]();
+        if (l.son === "crac" && navigator.vibrate) navigator.vibrate([60, 30, 60]);
         // effet machine à écrire
         let n = 0; complet = false; texteEl.textContent = "";
         minuteur = setInterval(() => {

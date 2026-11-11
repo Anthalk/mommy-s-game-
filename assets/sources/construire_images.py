@@ -22,6 +22,7 @@ FLUENT = {
     "baguette": "baguette_bread", "citron": "lemon", "plante": "potted_plant", "croissant": "croissant",
     "eclair": "high_voltage", "poisson": "fish", "question": "white_question_mark",
     "telephone": "telephone", "zzz": "zzz",
+    "crac": "collision", "soucoupe": "flying_saucer", "notes": "musical_notes", "micro": "microphone",
 }
 
 

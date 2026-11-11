@@ -288,3 +288,6 @@ p { font-size: clamp(1rem, 4.2vw, 1.2rem); line-height: 1.5; max-width: 30em; ma
 #pied.parle #indice { visibility: hidden; }
 #bulle img { width: 40px; height: 40px; }
 #bulle span { font-size: clamp(.82rem, 3.5vw, .95rem); }
+#dlg-boite.choc { animation: choc .45s ease both; }
+#dlg-boite.choc #dlg-texte { font-size: clamp(1.8rem, 9vw, 2.6rem); font-style: normal; font-weight: 800; color: #e0453a; }
+@keyframes choc { 0%, 100% { transform: none; } 20% { transform: translate(-10px, 4px) rotate(-2deg); } 40% { transform: translate(9px, -3px) rotate(2deg); } 60% { transform: translate(-6px, 2px); } 80% { transform: translate(4px, 0); } }

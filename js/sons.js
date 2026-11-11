@@ -36,6 +36,15 @@ const Son = {
     this.init();
     for (let k = 0; k < 2; k++) for (let i = 0; i < 16; i++) this.note(i % 2 ? 1250 : 1000, .045, "square", .035, k * 1.1 + i * .05);
   },
+  crac() {
+    // craquement : bruit très court qui décroît vite
+    this.init(); if (this.coupe || !this.ctx) return;
+    const n = Math.floor(this.ctx.sampleRate * .18), buf = this.ctx.createBuffer(1, n, this.ctx.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 6) * (i % 900 < 300 ? 1 : .3);
+    const s = this.ctx.createBufferSource(), g = this.ctx.createGain(); g.gain.value = .5;
+    s.buffer = buf; s.connect(g).connect(this.ctx.destination); s.start();
+  },
+  fredonne() { [659, 784, 880, 784].forEach((f, i) => this.note(f, .16, "triangle", .05, i * .17)); },
   prendre()  { this.note(620, .08, "triangle", .1); this.note(880, .08, "triangle", .08, .05); },
   poser()    { this.note(420, .09, "triangle", .1); },
   plouf()    { this.note(300, .12, "sine", .14); this.note(520, .1, "sine", .08, .06); },
