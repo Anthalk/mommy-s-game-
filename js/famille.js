@@ -31,7 +31,7 @@ const FAMILLE = {
     nom: "Minus",
     avatar: { peau: "#f2c9a8", cheveux: "#a8743f", coupe: "long", frange: false, barbe: null, lunettes: null, haut: "#b9e3c6" },
     recette: "cupcake",
-    bonjour: "Un cupcake avec beaucoup de chantilly. Tu peux mettre de l'ATEEZ dans la boutique ? Non ? Bon, je chante.",
+    bonjour: "Un cupcake avec beaucoup de chantilly. Tu peux mettre du ATEEZ dans la boutique ? Non ? Bon, je chante.",
     merci: "Je le prends en photo avant de le manger, sinon personne ne va me croire.",
     impatient: "Je reviens, il y a un live d'ATEEZ dans cinq minutes. Mets-le-moi de côté !",
   },
@@ -41,14 +41,14 @@ const FAMILLE = {
     recette: "tarte",
     bonjour: "Une tarte aux fraises, s'il vous plaît. Et ne me parlez pas des pyramides, je sais des choses.",
     merci: "Elle est parfaite. Trop parfaite. Qui vous a donné cette recette ?",
-    impatient: "Je reviens. Je dois vérifier un truc sur les pyramides.",
+    impatient: "Je reviens. Je dois vérifier un truc... Roswell et tout...",
   },
   copine: {
     nom: "Camille",
     avatar: { peau: "#f2c9a8", cheveux: "#2b1d16", coupe: "long", frange: false, barbe: null, lunettes: null, haut: "#f6c26b" },
     recette: "fraisier",
     bonjour: "Un fraisier, s'il vous plaît. C'est pour un patient. Longue histoire.",
-    merci: "Bon, il avait raison. Pour une fois.",
+    merci: "J'espère que son estomac marche encore lui...",
     impatient: "J'ai un patient qui m'attend, je repasse après. Ne vendez pas le dernier fraisier !",
   },
 };
@@ -58,7 +58,7 @@ const ANIMAUX_FAMILLE = {
   winter: {
     nom: "Winter", img: "winter",
     arrivee: "WOUF ! WOUF ! (Lance-la ! Lance-la ! LANCE-LA !)",
-    lance: ["Winter file à 3000 ampères !", "ZOOM. Winter a déjà rapporté la balle.", "Winter ne se fatigue jamais. Jamais."],
+    lance: ["Winter file ! Mach 12 sans doute", "ZOOM. Winter a déjà rapporté la balle.", "Winter ne se fatigue jamais. Jamais."],
     depart: "Winter va faire une sieste… de 30 secondes. 💤",
   },
   tsuki: {
@@ -102,7 +102,7 @@ const SCENES = {
     { qui: "soeur", texte: "Maman, c'est vrai que tu as ouvert une pâtisserie ? Mets-moi un cupcake de côté." },
     { qui: "soeur", texte: "Je finis le nouveau clip d'ATEEZ et j'arrive. Enfin, je le regarde encore trois fois et j'arrive." },
     { qui: "winter", son: "wouf", texte: "WOUF ! WOUF ! WOUF !" },
-    { qui: null, img: "winter_balle", texte: "Winter vient d'entrer dans la cuisine. À 3000 ampères. Avec sa balle." },
+    { qui: null, img: "winter_balle", texte: "Winter vient d'entrer dans la cuisine... Avec sa balle." },
     { qui: "soeur", texte: "Quand elle pose sa balle, touche-la pour la lancer. Sinon elle te suit jusqu'à la fermeture." },
   ],
   jour3: [
@@ -121,20 +121,20 @@ const SCENES = {
     { qui: "copine", texte: "Bon, je file chercher un fraisier pour me faire pardonner. Anthony dit que c'est le meilleur du coin." },
     { qui: "suguru", texte: "…" },
     { qui: null, img: "suguru", texte: "Suguru est entré. Il fixe le mur. Personne ne sait pourquoi." },
-    { qui: "copine", texte: "Laisse-lui le temps de choisir. Il est bizarre, mais on l'aime comme ça." },
+    { qui: "maman", texte: "Laissons lui le temps de choisir. Il est bizarre, mais on l'aime comme ça." },
   ],
   jour5: [
     { qui: "moi", texte: "Aujourd'hui, tout le monde passe à la boutique. Oui, tout le monde. Même Suguru." },
     { qui: "soeur", texte: "Et on a passé une commande spéciale." },
-    { qui: "papa", texte: "Un gâteau d'anniversaire. Je me demande bien pour qui." },
+    { qui: "papa", texte: "Un gâteau d'anniversaire. Je me demande bien pour qui... comme par hasard !" },
     { qui: "winter", son: "wouf", texte: "WOUF ! (J'ai ramené ma balle. Évidemment.)" },
   ],
   // après le dernier jour, juste avant le cadeau — ✏️ un bon endroit pour vos vrais mots doux
   fin: [
     { qui: "moi", texte: "Joyeux anniversaire Maman. Cinq jours de service et la boutique tient encore debout." },
-    { qui: "soeur", texte: "Joyeux anniversaire ! Le cupcake du deuxième jour reste le meilleur. Presque aussi bien qu'un concert d'ATEEZ." },
+    { qui: "soeur", texte: "Joyeux anniversaire Maman !" },
     { qui: "papa", texte: "Joyeux anniversaire. Officiellement, tu as un an de plus. Officiellement." },
-    { qui: "copine", texte: "Joyeux anniversaire ! Si tu as mal au dos après cette semaine de service, tu sais où me trouver." },
+    { qui: "copine", texte: "Joyeux anniversaire !" },
     { qui: "winter", son: "wouf", texte: "Wouf ! (Joyeux anniversaire. Tu lances la balle ?)" },
     { qui: "tsuki", son: "miaou", texte: "Miaou. (Joyeux anniversaire. Et sinon, on mange quand ?)" },
     { qui: "suguru", texte: "Suguru te fixe intensément. C'est sa façon de dire « joyeux anniversaire »." },
