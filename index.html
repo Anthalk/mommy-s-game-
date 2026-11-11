@@ -131,16 +131,19 @@
     <h2 id="bon-titre"></h2>
     <p class="pour" id="bon-pour"></p>
     <p class="details" id="bon-details"></p>
-    <canvas id="qr" aria-label="QR code du bon cadeau"></canvas>
-    <p class="code" id="bon-code"></p>
+    <div class="code-bon">
+      <small>Code de la carte cadeau</small>
+      <b id="bon-code"></b>
+      <button class="bouton secondaire petit" id="btn-copier">Copier le code</button>
+    </div>
     <p class="validite" id="bon-validite"></p>
     <p class="signature" id="bon-signature"></p>
   </div>
   <div class="actions-bon">
-    <button class="bouton" id="btn-telecharger">📥 Garder mon bon</button>
+    <button class="bouton" id="btn-telecharger">📄 Télécharger mon bon (PDF)</button>
     <button class="bouton secondaire" id="btn-retour-semaine">Retour</button>
   </div>
-  <p class="astuce">Astuce&nbsp;: enregistre l'image du bon pour le présenter le jour de l'atelier.</p>
+  <p class="astuce">Garde le PDF précieusement : c'est lui (et son code) qui servira à réserver l'atelier.</p>
 </section>
 
 <!-- ============ Dialogues ============ -->
@@ -154,7 +157,6 @@
 
 <canvas id="confettis"></canvas>
 
-<script src="vendor/qrcode.js"></script>
 <script src="js/config.js"></script>
 <script src="js/outils.js"></script>
 <script src="js/sons.js"></script>

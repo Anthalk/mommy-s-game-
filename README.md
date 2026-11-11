@@ -4,7 +4,7 @@ Jeu de gestion de cuisine (téléphone ou ordinateur) en **5 jours**. Des client
 arrivent au comptoir avec une commande et une jauge de patience ; il faut
 préparer leurs desserts avant qu'ils ne s'impatientent. Chaque jour ajoute une
 recette et des meubles. Une fois la semaine terminée, un **bon cadeau pour un
-atelier pâtisserie** (avec QR code) se dévoile… mais seulement à partir de la
+atelier pâtisserie** (avec son code, téléchargeable en PDF) se dévoile… mais seulement à partir de la
 date choisie (`dateRevelation`, par défaut le samedi 14 novembre 2026 à 18 h,
 heure de Paris). Avant, un compte à rebours s'affiche.
 
@@ -42,9 +42,8 @@ de l'avatar de Maman.
 
 ## Personnaliser
 
-Tout se règle dans `js/config.js` : prénom, textes du bon, code, contenu du QR
-code (`qrContenu` : texte automatique si vide, ou un lien `https://…`), date de
-révélation et patience des clients. Les recettes et les jours sont dans
+Tout se règle dans `js/config.js` : prénom, textes du bon, **code de la carte
+cadeau** (ligne `code: "…"`), date de révélation et patience des clients. Les recettes et les jours sont dans
 `js/donnees.js`.
 
 ## Tester
@@ -74,8 +73,3 @@ Netlify Drop (glisser le dossier sur https://app.netlify.com/drop).
   `python3 assets/sources/generer_svg.py`, puis
   `node assets/sources/rasteriser.js assets/sources <dossier_png>` (Playwright),
   puis `python3 assets/sources/construire_images.py <dossier_png> <dossier_fluent>`.
-
-## Crédits
-
-QR code : [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator)
-de Kazuhiko Arase (licence MIT), dans `vendor/qrcode.js`.

@@ -234,7 +234,10 @@ p { font-size: clamp(1rem, 4.2vw, 1.2rem); line-height: 1.5; max-width: 30em; ma
 .bon h2 { margin: .25em 0 .1em; font-size: clamp(1.8rem, 8vw, 2.3rem); }
 .bon .pour { font-weight: 700; margin: 0; }
 .bon .details { font-size: 1rem; margin: .6em auto; }
-#qr { display: block; margin: 14px auto 6px; width: min(62vw, 230px); height: auto; image-rendering: pixelated; border-radius: 10px; }
+.code-bon { margin: 16px auto 8px; padding: 14px 12px 12px; border: 3px dashed var(--or); border-radius: 18px; background: var(--creme); }
+.code-bon small { display: block; font-weight: 800; color: var(--rose-fonce); text-transform: uppercase; letter-spacing: .1em; font-size: .78rem; }
+.code-bon b { display: block; margin: 6px 0 2px; font-size: clamp(1.4rem, 7vw, 2rem); letter-spacing: .06em; word-break: break-all; -webkit-user-select: all; user-select: all; }
+.code-bon .bouton { margin-top: 8px; }
 .bon .code { font-weight: 800; letter-spacing: .08em; margin: 4px 0; }
 .bon .validite { font-size: .9rem; opacity: .75; margin: 2px 0; }
 .bon .signature { font-family: "Pacifico", cursive; font-size: 1.25rem; color: var(--choco-clair); margin: .7em 0 0; }
