@@ -1,88 +1,37 @@
-# 🧁 La pâtisserie de Maman — jeu d'anniversaire
+# La pâtisserie de Maman
 
-Jeu de gestion de cuisine (téléphone ou ordinateur) en **5 jours**. Des clients
-arrivent au comptoir avec une commande et une jauge de patience ; il faut
-préparer leurs desserts avant qu'ils ne s'impatientent. Chaque jour ajoute une
-recette et des meubles. Une fois la semaine terminée, un **bon cadeau pour un
-atelier pâtisserie** (avec son code, téléchargeable en PDF) se dévoile… mais seulement à partir de la
-date choisie (`dateRevelation`, par défaut le samedi 14 novembre 2026 à 18 h,
-heure de Paris). Avant, un compte à rebours s'affiche.
+Jouer : **https://anthalk.github.io/mommy-s-game-/**
 
-| Jour | Nouveauté | Saladier (3 ingrédients) | Four | Décoration |
-|---|---|---|---|---|
-| 1 | Cookies | farine + beurre + chocolat | ✔ | – |
-| 2 | Cupcake | farine + œufs + beurre | ✔ | chantilly |
-| 3 | Tarte aux fraises | farine + beurre + sucre | ✔ | fraises |
-| 4 | Fraisier | farine + œufs + sucre | ✔ | chantilly + fraises |
-| 5 | Gâteau d'anniversaire | farine + œufs + chocolat | ✔ | chantilly + bougies |
+Un petit jeu d'anniversaire, sur téléphone ou ordinateur. Pendant 5 jours, on
+tient une pâtisserie : les clients (dont la famille et les animaux) commandent
+au comptoir, et il faut préparer leurs desserts avant qu'ils perdent patience.
+À la fin de la semaine, un bon cadeau pour un atelier à
+[L'Atelier de Nils](https://www.latelierdenils.fr/) se débloque, à partir du
+samedi 14 novembre à 18 h.
 
-**Aides** : tickets de commande en haut (ingrédients cochés au fur et à mesure,
-touchables pour voir la recette en grand), flèches jaunes et message en bas
-(désactivables dans la pause), premier client de chaque nouvelle recette sans
-limite de temps, clients plus patients après un départ. Pas de « game over ».
-La progression est enregistrée dans le navigateur (on peut jouer un jour à la fois).
+## Modifier le jeu
 
-## La famille
+- `js/config.js` : prénom, textes du bon, date de révélation, patience des clients.
+- `js/famille.js` : prénoms, apparences, répliques et scènes.
+- `js/donnees.js` : recettes et déroulé des 5 jours.
 
-Chaque jour commence par une petite scène de dialogue (le jour 1 : le
-téléphone qui sonne…). Un membre de la famille vient chaque jour comme client
-spécial (prénom affiché sur le comptoir, répliques à l'arrivée et au service),
-puis tout le monde le jour 5, avant une scène finale où chacun souhaite
-l'anniversaire. Les animaux ont leur propre comportement :
+## Le code de la carte cadeau
 
-- **Winter** débarque dans la cuisine avec sa balle (à partir du jour 2) : la
-  toucher pour la lancer, sinon elle suit la cheffe partout.
-- **Tsuki** (jour 3) est si petite qu'on ne voit que ses oreilles dépasser du
-  comptoir, et elle réclame à manger (miaou !).
-- **Suguru** (jour 4) fixe le mur avant de se décider à commander.
+Il n'est jamais écrit en clair : il est chiffré, et il ne s'affiche qu'avec le
+mot magique, à taper en ouvrant le cadeau.
 
-Prénoms, apparences (avatars dessinés automatiquement), répliques, scènes et
-programme des visites : tout est dans `js/famille.js`. La cheffe a le visage
-de l'avatar de Maman.
-
-## Personnaliser
-
-Tout se règle dans `js/config.js` : prénom, textes du bon, date de révélation
-et patience des clients.
-
-### Le code de la carte cadeau et le « mot magique »
-
-Le code n'est jamais écrit en clair dans le jeu : il est chiffré (AES-256,
-clé dérivée du mot magique) et ne s'affiche qu'une fois le mot magique saisi
-à l'ouverture du cadeau. Le mot est ensuite mémorisé sur l'appareil.
-
-1. Ouvrir `chiffrer.html` (sur le site en ligne, en https), taper le code et le
-   mot magique, cliquer sur « Chiffrer ». Rien n'est envoyé sur internet.
-2. Coller le résultat (qui commence par `v1:`) dans `js/config.js`, ligne
-   `codeChiffre: "…"`, et laisser `code: ""` vide.
-3. Donner le mot magique le jour J. Majuscules, accents et ponctuation ne
-   comptent pas. Deux ou trois mots valent mieux qu'un seul. Les recettes et les jours sont dans
-`js/donnees.js`.
+1. Ouvrir https://anthalk.github.io/mommy-s-game-/chiffrer.html
+2. Taper le code et le mot magique, puis cliquer sur « Chiffrer ».
+3. Coller le résultat (il commence par `v1:`) dans `js/config.js`, ligne `codeChiffre`.
 
 ## Tester
 
-- Ouvrir `index.html` dans un navigateur (ou `python3 -m http.server` puis http://localhost:8000).
-- `index.html?apercu` : tous les jours et le cadeau sont débloqués, rien n'est sauvegardé.
-- `index.html?reset` : efface la progression enregistrée sur cet appareil.
+- `?apercu` à la fin de l'adresse : tout est débloqué, rien n'est enregistré.
+- `?reset` : efface la progression enregistrée sur l'appareil.
 
-⚠️ Le verrou de date est un verrou « de bonne foi » : le contenu du bon est
-dans les fichiers du jeu, et quelqu'un de curieux peut le lire dans le code
-source ou utiliser `?apercu`. L'heure est prise sur le serveur qui héberge le
-jeu quand c'est possible (changer l'heure du téléphone ne suffit donc pas une
-fois en ligne), sinon sur l'appareil.
+## Crédits
 
-## Mettre en ligne
-
-GitHub Pages (dépôt public : *Settings → Pages → Deploy from a branch*) ou
-Netlify Drop (glisser le dossier sur https://app.netlify.com/drop).
-
-## Images
-
-- Illustrations 3D **Fluent Emoji** de Microsoft (licence MIT, voir
-  `assets/img/LICENCE-fluent-emoji.txt`).
-- Farine, sucre, chantilly, bougies, tarte aux fraises, gâteaux cuits, pâtes,
-  Winter, Tsuki, Suguru et la balle :
-  dessinés pour le jeu (`assets/sources/generer_svg.py`). Pour les régénérer :
-  `python3 assets/sources/generer_svg.py`, puis
-  `node assets/sources/rasteriser.js assets/sources <dossier_png>` (Playwright),
-  puis `python3 assets/sources/construire_images.py <dossier_png> <dossier_fluent>`.
+Illustrations 3D Fluent Emoji de Microsoft (licence MIT, voir
+`assets/img/LICENCE-fluent-emoji.txt`). Les autres illustrations (farine, sucre,
+chantilly, pâtes, Winter, Tsuki, Suguru…) sont générées par
+`assets/sources/generer_svg.py`.
