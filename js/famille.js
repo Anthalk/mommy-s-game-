@@ -23,7 +23,7 @@ const FAMILLE = {
     nom: "Anthony",
     avatar: { peau: "#f2c9a8", cheveux: "#4a2e1f", coupe: "court", frange: false, barbe: null, lunettes: null, haut: "#7fb8ef" },
     recette: "cookie",
-    bonjour: "Bonjour madame. Premier client de la boutique, ça donne droit à une réduction ?",
+    bonjour: "Oh un Gobemouche à gorge rousse ! Bonjour madame. Premier client de la boutique, ça donne droit à une réduction ?",
     merci: "Encore chauds. Tu peux en refaire une fournée ? C'est pour un ami.",
     impatient: "Bon, je repasse. Garde-moi des cookies.",
   },
@@ -131,7 +131,7 @@ const SCENES = {
   ],
   // après le dernier jour, juste avant le cadeau — ✏️ un bon endroit pour vos vrais mots doux
   fin: [
-    { qui: "moi", texte: "Joyeux anniversaire Maman. Cinq jours de service et la boutique tient encore debout." },
+    { qui: "moi", texte: "Joyeux anniversaire Maman. Cinq jours de service et la boutique tient encore debout. Je t'aime" },
     { qui: "soeur", texte: "Joyeux anniversaire Maman !" },
     { qui: "papa", texte: "Joyeux anniversaire. Officiellement, tu as un an de plus. Officiellement." },
     { qui: "copine", texte: "Joyeux anniversaire !" },
