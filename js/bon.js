@@ -75,6 +75,10 @@ $("#mot-magique").addEventListener("submit", async (e) => {
     ouvrirBon();
   } catch (x) {
     Son.erreur();
+    if (x.message === "format" || x.name === "InvalidCharacterError" || x.name === "DataError") {
+      err.textContent = "Le code chiffré de js/config.js semble incomplet : recopie-le en entier depuis chiffrer.html.";
+      $("#btn-mot").disabled = false; return;
+    }
     err.textContent = choisir(["Ce n'est pas le bon mot magique…", "Raté ! Le cadenas ne bouge pas.", "Non… Essaie encore !"]);
     form.classList.remove("non"); void form.offsetWidth; form.classList.add("non");
   }

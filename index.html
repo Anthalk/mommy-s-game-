@@ -170,7 +170,8 @@
 
 <canvas id="confettis"></canvas>
 
-<script src="js/config.js"></script>
+<!-- config.js toujours rechargé (GitHub Pages garde les fichiers 10 min en cache) -->
+<script>document.write('<script src="js/config.js?v=' + Date.now() + '"><\/script>');</script>
 <script src="js/outils.js"></script>
 <script src="js/sons.js"></script>
 <script src="js/donnees.js"></script>
