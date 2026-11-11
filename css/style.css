@@ -130,8 +130,8 @@ p { font-size: clamp(1rem, 4.2vw, 1.2rem); line-height: 1.5; max-width: 30em; ma
   position: relative; overflow: hidden; cursor: pointer;
   background: var(--blanc); border-radius: 14px; box-shadow: 0 4px 12px rgba(91,58,41,.14);
   padding: 8px 4px 4px; min-height: 92px;
-  animation: ticket-arrive .35s ease both;
 }
+.ticket.nouveau { animation: ticket-arrive .35s ease both; }
 @keyframes ticket-arrive { from { transform: translateY(-12px); opacity: 0; } }
 .ticket.vide { background: rgba(255,255,255,.35); box-shadow: none; border: 2px dashed #ecd5c0; cursor: default; animation: none; }
 .ticket.decouverte { box-shadow: 0 0 0 3px #7fb8ef, 0 4px 12px rgba(91,58,41,.14); }
@@ -158,7 +158,7 @@ p { font-size: clamp(1rem, 4.2vw, 1.2rem); line-height: 1.5; max-width: 30em; ma
 
 #zone-cuisine { position: relative; flex: 1; min-height: 0; margin: 0 6px; }
 #cuisine { position: absolute; inset: 0; touch-action: none; }
-#pied { padding: 6px 10px max(10px, env(safe-area-inset-bottom)); width: 100%; max-width: 640px; margin: 0 auto; }
+#pied { position: relative; padding: 6px 10px max(10px, env(safe-area-inset-bottom)); width: 100%; max-width: 640px; margin: 0 auto; }
 #indice {
   min-height: 2.9em; display: flex; align-items: center; justify-content: center;
   font-weight: 800; font-size: clamp(.92rem, 3.9vw, 1.08rem); line-height: 1.3;
@@ -242,3 +242,49 @@ p { font-size: clamp(1rem, 4.2vw, 1.2rem); line-height: 1.5; max-width: 30em; ma
 .astuce { font-size: .9rem; opacity: .75; max-width: 380px; }
 
 #confettis { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 40; }
+
+/* ============================ Bulles de paroles ============================ */
+#bulle {
+  position: absolute; left: 10px; right: 10px; bottom: max(10px, env(safe-area-inset-bottom)); z-index: 5;
+  min-height: calc(2.9em + 4px); display: flex; align-items: center; gap: 10px; text-align: left;
+  background: var(--blanc); border-radius: 14px; padding: 6px 10px; box-shadow: var(--ombre);
+  border: 2px solid var(--rose); pointer-events: none;
+  opacity: 0; transform: translateY(8px); transition: opacity .25s, transform .25s;
+}
+#bulle.visible { opacity: 1; transform: none; }
+#bulle img { width: 44px; height: 44px; flex: none; }
+#bulle b { display: block; color: var(--rose-fonce); font-size: .85rem; }
+#bulle span { font-weight: 700; font-size: clamp(.85rem, 3.6vw, .98rem); line-height: 1.3; }
+
+/* ============================ Dialogues ============================ */
+#ov-dialogue {
+  position: fixed; inset: 0; z-index: 60; cursor: pointer;
+  display: flex; align-items: flex-end; justify-content: center;
+  background: linear-gradient(rgba(91,58,41,.15), rgba(91,58,41,.55));
+  padding: 16px 12px max(22px, env(safe-area-inset-bottom));
+}
+#ov-dialogue[hidden] { display: none; }
+#dlg-passer {
+  position: absolute; top: max(12px, env(safe-area-inset-top)); left: 12px;
+  border: none; border-radius: 999px; padding: 8px 14px; background: rgba(255,255,255,.9);
+  font: 800 .9rem Nunito, sans-serif; color: var(--choco); cursor: pointer;
+}
+#dlg-boite {
+  position: relative; width: 100%; max-width: 560px;
+  display: flex; align-items: flex-end; gap: 12px;
+  background: var(--blanc); border-radius: 22px; padding: 16px 16px 14px; box-shadow: 0 14px 40px rgba(0,0,0,.25);
+  border: 3px solid var(--rose); min-height: 140px;
+}
+#dlg-boite.arrive { animation: dlg-arrive .3s ease both; }
+@keyframes dlg-arrive { from { transform: translateY(14px) scale(.98); opacity: .4; } }
+#dlg-portrait { width: clamp(86px, 26vw, 130px); height: auto; margin: -56px 0 -4px -4px; flex: none; filter: drop-shadow(0 6px 10px rgba(0,0,0,.2)); }
+#dlg-portrait[hidden] { display: none; }
+.dlg-corps { flex: 1; text-align: left; min-height: 96px; }
+#dlg-nom { display: inline-block; background: var(--rose); color: #fff; border-radius: 999px; padding: 3px 12px; font-size: .9rem; margin-bottom: 6px; }
+#dlg-nom[hidden] { display: none; }
+#dlg-texte { margin: 0; font-size: clamp(1.05rem, 4.4vw, 1.25rem); font-weight: 700; line-height: 1.45; }
+#dlg-boite.narration #dlg-texte { font-style: italic; font-weight: 600; }
+.dlg-suite { position: absolute; right: 16px; bottom: 8px; color: var(--rose); animation: flotte 1s ease-in-out infinite; }
+#pied.parle #indice { visibility: hidden; }
+#bulle img { width: 40px; height: 40px; }
+#bulle span { font-size: clamp(.82rem, 3.5vw, .95rem); }

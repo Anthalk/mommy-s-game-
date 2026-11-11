@@ -82,7 +82,7 @@ const Cuisine = {
     });
     $("#btn-jour-suivant").addEventListener("click", () => this.demarrerJour(this.jour + 1));
     $("#btn-menu").addEventListener("click", () => { $("#ov-fin").hidden = true; Semaine.afficher(); });
-    $("#btn-fermer-boutique").addEventListener("click", () => { $("#ov-fin").hidden = true; Cadeau.afficher(); });
+    $("#btn-fermer-boutique").addEventListener("click", async () => { $("#ov-fin").hidden = true; await Dialogue.jouer(SCENES.fin); Cadeau.afficher(); });
   },
 
   /* ----------------------- Mise en place d'un jour ----------------------- */
@@ -122,7 +122,10 @@ const Cuisine = {
     this.fini = false; this.enCours = false; this.pause = false;
     this.prochainClient = .8; this.temps = 0; this.derniereRecette = null;
     this.message = null; this.indices = { stations: [], texte: "" }; this.tIndice = 0;
-    this.sigTickets = "";
+    this.sigTickets = ""; this.idsTickets = [];
+    this.P = PROGRAMME[i] || { invites: {}, winter: [] };
+    this.winter = null; this.winterVenues = 0;
+    this.bulles = []; this.bulle = null; $("#bulle").classList.remove("visible"); $("#pied").classList.remove("parle");
 
     afficher("ecran-cuisine");
     $("#hud-jour").textContent = `Jour ${i + 1}`;
@@ -134,7 +137,16 @@ const Cuisine = {
     $("#jour-regles").hidden = i !== 0;
     $("#jour-fiche").innerHTML = htmlFiche(this.J.nouvelle, true);
     $("#jour-objectif").textContent = this.objectif;
-    $("#ov-jour").hidden = false;
+    // petite scène de dialogue avant le jour (la première fois)
+    const scene = SCENES["jour" + (i + 1)];
+    const vues = Progression.etat.scenes || (Progression.etat.scenes = []);
+    if (scene && (APERCU || !vues.includes(i))) {
+      $("#ov-jour").hidden = true;
+      Dialogue.jouer(scene).then(() => {
+        if (!vues.includes(i)) { vues.push(i); Progression.sauver(); }
+        $("#ov-jour").hidden = false;
+      });
+    } else $("#ov-jour").hidden = false;
     this.majBoutonFleches();
     requestAnimationFrame(() => { this.redim(); this.majHUD(); this.majTickets(); this.dessiner(); });
   },
@@ -196,6 +208,8 @@ const Cuisine = {
     const rect = this.cv.getBoundingClientRect();
     const x = e.clientX - rect.left, y = e.clientY - rect.top;
     const c = Math.floor((x - this.ox) / this.T), r = Math.floor((y - this.gy) / this.T);
+    const w = this.winter;
+    if (w && w.etat === "attend" && w.balle && Math.hypot(x - this.px(w.balle.x), y - this.py(w.balle.y)) < this.T * .65) { this.lancerBalle(); return; }
     if (c < 0 || c >= COLS || y < this.oy || r >= LIGNES) return;
     let action;
     if (r < 0) action = { type: "station", st: this.grille[0][c] };            // on touche un client → comptoir
@@ -322,7 +336,7 @@ const Cuisine = {
       if (aDecorer(o, this.recettes)) return this.dire("Il faut encore le décorer sur le plan de travail.");
       return this.dire("Ce n'est pas encore un dessert terminé !");
     }
-    const cands = this.clients.filter((c) => c.etat === "attend" && c.recette === rec)
+    const cands = this.clients.filter((c) => c.etat === "attend" && !(c.fixe > 0) && c.recette === rec)
       .sort((a, b) => a.patience / a.max - b.patience / b.max);
     if (!cands.length) { Son.erreur(); return this.dire(`Personne n'a commandé ${nomObjet(o)} pour l'instant.`); }
     const cl = cands[0];
@@ -335,6 +349,7 @@ const Cuisine = {
     if (navigator.vibrate) navigator.vibrate(30);
     this.effets.push({ type: "texte", txt: `+${pourboire}`, x: cl.x + .5, y: -.9, vie: 1.4, couleur: "#2e9a6a" });
     for (let i = 0; i < 4; i++) this.effets.push({ type: "coeur", x: cl.x + .5 + hasard(-.4, .4), y: -.7, vx: hasard(-.4, .4), vie: hasard(.9, 1.5) });
+    if (cl.perso) this.parler(cl.perso, (FAMILLE[cl.perso] || ANIMAUX_FAMILLE[cl.perso]).merci);
     this.dire(cl.decouverte && this.jour === 0
       ? "Bravo, premier client servi ! 🎉 Les suivants arrivent…"
       : choisir(["Merci ! 😋", "Délicieux ! 💖", "Un régal ! ✨", "Parfait ! 👌", "Miam ! 😍"]), cl.decouverte ? 3 : 1.6);
@@ -348,16 +363,21 @@ const Cuisine = {
     const libres = [0, 1, 2].filter((p) => !prises.has(p));
     if (!libres.length) return false;
     const place = choisir(libres);
+    const invite = this.P.invites[this.numeroClient] || null;      // un membre de la famille ?
+    const fiche = invite && (FAMILLE[invite] || ANIMAUX_FAMILLE[invite]);
     let recette, decouverte = false;
     if (!this.decouverteFaite) { recette = this.J.nouvelle; decouverte = true; this.decouverteFaite = true; }
+    else if (fiche && fiche.recette && this.recettes.includes(fiche.recette)) recette = fiche.recette;
     else if (Math.random() < .35) recette = this.J.nouvelle;                 // la nouveauté revient souvent
     else recette = choisir(this.recettes.length > 1 ? this.recettes.filter((k) => k !== this.derniereRecette) : this.recettes);
     this.derniereRecette = recette;
     const pris = this.clients.map((c) => c.animal);
-    const max = RECETTES[recette].patience * this.facteur;
+    const bonus = FAMILLE[invite] ? 1.5 : invite === "tsuki" ? .9 : 1;    // la famille est patiente, Tsuki beaucoup moins
+    const max = RECETTES[recette].patience * this.facteur * bonus;
     this.clients.push({
       id: ++this.numeroClient, place, col: PLACES[place], x: -1, recette, decouverte,
-      animal: choisir(ANIMAUX.filter((a) => !pris.includes(a))),
+      animal: invite ? (FAMILLE[invite] ? "perso_" + invite : fiche.img) : choisir(ANIMAUX.filter((a) => !pris.includes(a))),
+      perso: invite, nom: fiche ? fiche.nom : null, fixe: invite === "suguru" ? 7 : 0, miaou: 2,
       patience: max, max, etat: "arrive", t: 0, content: false,
     });
     if (decouverte && this.jour > 0) this.dire(`Nouvelle recette : ${RECETTES[recette].nom} ! Touche son ticket en haut pour la voir en grand.`, 4.5);
@@ -369,15 +389,32 @@ const Cuisine = {
       c.t += dt;
       if (c.etat === "arrive") {
         c.x = Math.min(c.col, c.x + 3.2 * dt);
-        if (c.x >= c.col) { c.etat = "attend"; Son.cloche(); }
+        if (c.x >= c.col) {
+          c.etat = "attend"; Son.cloche();
+          if (c.perso) this.parler(c.perso, (FAMILLE[c.perso] || ANIMAUX_FAMILLE[c.perso]).bonjour, 4.5);
+          if (c.perso === "tsuki") Son.miaou();
+        }
       } else if (c.etat === "attend") {
+        if (c.fixe > 0) {                       // Suguru fixe le mur…
+          c.fixe -= dt;
+          if (c.fixe <= 0) { this.parler("suguru", ANIMAUX_FAMILLE.suguru.decide); Son.cloche(); }
+          continue;
+        }
+        if (c.perso === "tsuki") {              // Tsuki réclame
+          c.miaou -= dt;
+          if (c.miaou <= 0) {
+            c.miaou = hasard(4, 7); Son.miaou();
+            this.effets.push({ type: "texte", txt: "Miaou !", x: c.x + .5, y: -.35, vie: 1.2, couleur: "#d65a87", piece: false });
+          }
+        }
         if (!c.decouverte) c.patience -= dt;
         if (c.patience <= 0) {
           c.etat = "part"; c.content = false; c.t = 0;
           this.partis++;
           this.facteur = Math.min(this.facteurMax, this.facteur + .12);  // on aide un peu après un départ
           Son.triste();
-          this.dire("Un client en a eu assez d'attendre… Pas grave, on continue !", 3);
+          if (c.perso) this.parler(c.perso, (FAMILLE[c.perso] || ANIMAUX_FAMILLE[c.perso]).impatient);
+          else this.dire("Un client en a eu assez d'attendre… Pas grave, on continue !", 3);
           this.majHUD();
         }
       } else if (c.etat === "part" && c.t > .7) c.x += 3.2 * dt;
@@ -438,6 +475,8 @@ const Cuisine = {
       }
     }
     this.majClients(dt);
+    this.majWinter(dt);
+    if (this.bulle) { this.bulle.t -= dt; if (this.bulle.t <= 0) this.bulleSuivante(); }
 
     for (const e of this.effets) {
       e.vie -= dt;
@@ -475,7 +514,7 @@ const Cuisine = {
       if (e.sorte === "pate") return e.pate === r.pate;
       return e.objet.id === PATES[r.pate].cuit && contient(r.decors, e.objet.decors);
     };
-    const attente = this.clients.filter((c) => c.etat === "attend" || c.etat === "arrive")
+    const attente = this.clients.filter((c) => (c.etat === "attend" || c.etat === "arrive") && !(c.fixe > 0))
       .sort((a, b) => a.patience / a.max - b.patience / b.max);
     const utilises = new Set();
     this.affectation = new Map();
@@ -594,10 +633,12 @@ const Cuisine = {
 
   majTickets() {
     const slots = [0, 1, 2].map((p) => this.clients.find((c) => c.place === p && c.etat !== "part"));
-    const sig = slots.map((c) => c ? `${c.id}|${JSON.stringify(this.progresClient(c))}` : "-").join("/");
+    const sig = slots.map((c) => c ? `${c.id}|${c.fixe > 0}|${JSON.stringify(this.progresClient(c))}` : "-").join("/");
     if (sig !== this.sigTickets) {
       this.sigTickets = sig;
-      $("#tickets").innerHTML = slots.map((c) => c ? this.htmlTicket(c) : `<div class="ticket vide"></div>`).join("");
+      const anciens = this.idsTickets || [];
+      $("#tickets").innerHTML = slots.map((c) => c ? this.htmlTicket(c).replace('class="ticket', `class="ticket${anciens.includes(c.id) ? "" : " nouveau"}`) : `<div class="ticket vide"></div>`).join("");
+      this.idsTickets = slots.filter(Boolean).map((c) => c.id);
     }
     // jauges de patience (mises à jour en continu)
     const tickets = $("#tickets").children;
@@ -613,6 +654,11 @@ const Cuisine = {
   },
 
   htmlTicket(c) {
+    if (c.fixe > 0) {
+      return `<div class="ticket"><div class="t-patience"><div></div></div>
+        <div class="t-tete"><img class="t-plat" src="${srcImg("question")}" alt=""><span class="t-nom">${c.nom} réfléchit…</span><img class="t-client" src="${srcImg(c.animal)}" alt=""></div>
+        <div class="t-ligne"><span class="t-ic"><img src="${srcImg("zzz")}" alt=""></span></div></div>`;
+    }
     const r = RECETTES[c.recette], ingr = PATES[r.pate].ingr, p = this.progresClient(c);
     const reste = [...p.ingr];
     const ic = (img, ok, cls = "") => `<span class="t-ic ${ok ? "ok" : ""} ${cls}"><img src="${srcImg(img)}" alt=""></span>`;
@@ -624,6 +670,118 @@ const Cuisine = {
       <div class="t-ligne">${lIngr}</div>
       <div class="t-ligne">${ic("feu", p.four === "ok", p.four === "encours" ? "encours" : "")}${lDecor ? `<i>›</i>${lDecor}` : ""}</div>
     </div>`;
+  },
+
+  /* ----------------------- Bulles de paroles ----------------------- */
+  parler(qui, texte, duree = 3.8) {
+    if (!texte) return;
+    this.bulles.push({ qui, texte, duree });
+    if (!this.bulle) this.bulleSuivante();
+  },
+  bulleSuivante() {
+    const b = this.bulles.shift(), el = $("#bulle");
+    $("#pied").classList.toggle("parle", !!b);
+    if (!b) { this.bulle = null; el.classList.remove("visible"); return; }
+    this.bulle = b; b.t = b.duree;
+    const p = portraitDe(b.qui);
+    $("#bulle-img").src = srcImg(p ? p.img : b.qui);
+    $("#bulle-nom").textContent = p ? p.nom : "";
+    $("#bulle-texte").textContent = b.texte;
+    el.classList.remove("visible"); void el.offsetWidth; el.classList.add("visible");
+  },
+
+  /* ----------------------- Winter et sa balle ----------------------- */
+  caseLibrePres(x, y) {
+    const c0 = Math.floor(x), r0 = Math.floor(y);
+    const v = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1]]
+      .map(([dc, dr]) => ({ c: c0 + dc, r: r0 + dr })).filter((p) => this.libre(p.c, p.r) && p.r > 1);
+    const p = v.length ? choisir(v) : { c: c0, r: r0 };
+    return { x: p.c + .5, y: p.r + .5 };
+  },
+  lancerWinter() {
+    this.winterVenues++;
+    const cible = this.caseLibrePres(this.joueur.x, this.joueur.y);
+    this.winter = { etat: "arrive", x: -.6, y: 6.5, cx: cible.x, cy: cible.y, t: 0, lancers: 0, porte: true, balle: null, dir: 1, wouf: 0 };
+    Son.wouf();
+    this.parler("winter", ANIMAUX_FAMILLE.winter.arrivee);
+    this.dire("Winter t'apporte sa balle ! Touche la balle pour la lancer.", 3.5);
+  },
+  lancerBalle() {
+    const w = this.winter;
+    const loin = [];
+    for (let r = 2; r < LIGNES; r++) for (let c = 0; c < COLS; c++) if (this.libre(c, r) && Math.hypot(c + .5 - w.balle.x, r + .5 - w.balle.y) >= 3) loin.push({ x: c + .5, y: r + .5 });
+    const arrivee = loin.length ? choisir(loin) : { x: 3.5, y: 5.5 };
+    w.balle = { x: w.balle.x, y: w.balle.y, x0: w.balle.x, y0: w.balle.y, x1: arrivee.x, y1: arrivee.y, k: 0, vol: true };
+    w.etat = "lance"; w.cx = arrivee.x; w.cy = arrivee.y; w.lancers++;
+    Son.wouf(); Son.prendre();
+    this.pieces += 3; this.majHUD();
+    this.effets.push({ type: "texte", txt: "+3", x: w.x, y: w.y - .6, vie: 1.2, couleur: "#2e9a6a" });
+    this.parler("winter", ANIMAUX_FAMILLE.winter.lance[(w.lancers - 1) % ANIMAUX_FAMILLE.winter.lance.length], 2.5);
+  },
+  majWinter(dt) {
+    const w = this.winter, j = this.joueur;
+    if (!w) {
+      if (!this.fini && this.winterVenues < this.P.winter.length && this.servis >= this.P.winter[this.winterVenues]) this.lancerWinter();
+      return;
+    }
+    w.t += dt;
+    const courir = (vitesse) => {
+      const dx = w.cx - w.x, dy = w.cy - w.y, d = Math.hypot(dx, dy), pas = vitesse * dt;
+      if (Math.abs(dx) > .01) w.dir = Math.sign(dx);
+      if (d <= pas) { w.x = w.cx; w.y = w.cy; return true; }
+      w.x += dx / d * pas; w.y += dy / d * pas; return false;
+    };
+    if (w.balle && w.balle.vol) {
+      const b = w.balle; b.k = Math.min(1, b.k + dt / .6);
+      b.x = b.x0 + (b.x1 - b.x0) * b.k; b.y = b.y0 + (b.y1 - b.y0) * b.k;
+      if (b.k >= 1) b.vol = false;
+    }
+    switch (w.etat) {
+      case "arrive": case "retour":
+        if (courir(9)) {
+          w.etat = "attend"; w.t = 0; w.porte = false;
+          w.balle = { x: w.x + (w.x < 3.5 ? .42 : -.42), y: w.y + .2 };
+          if (w.lancers >= 3) { w.etat = "part"; w.cx = -1; w.cy = w.y; w.porte = true; w.balle = null; this.parler("winter", ANIMAUX_FAMILLE.winter.depart); }
+        }
+        break;
+      case "attend":
+        w.wouf -= dt;
+        if (w.wouf <= 0) { w.wouf = 2.6; Son.wouf(); this.effets.push({ type: "texte", txt: "Wouf !", x: w.x, y: w.y - .55, vie: .9, couleur: "#5b3a29", piece: false }); }
+        // il suit la cheffe partout avec sa balle
+        if (w.t > 1 && Math.hypot(j.x - w.x, j.y - w.y) > 2.6) {
+          const p = this.caseLibrePres(j.x, j.y); w.cx = p.x; w.cy = p.y; w.porte = true; w.balle = null; w.etat = "retour";
+        }
+        if (w.t > 35) { w.etat = "part"; w.cx = -1; w.porte = true; w.balle = null; }
+        break;
+      case "lance":
+        if (courir(12) && !w.balle.vol) {
+          w.porte = true; w.balle = null;
+          const p = this.caseLibrePres(j.x, j.y); w.cx = p.x; w.cy = p.y; w.etat = "retour";
+        }
+        break;
+      case "part":
+        if (courir(10)) this.winter = null;
+        break;
+    }
+  },
+  dessinerWinter() {
+    const w = this.winter; if (!w) return;
+    const c = this.ctx, T = this.T;
+    if (w.balle) {
+      const b = w.balle, h = b.vol ? Math.sin(Math.PI * b.k) * 1.4 : 0;
+      c.fillStyle = "rgba(91,58,41,.2)"; c.beginPath(); c.ellipse(this.px(b.x), this.py(b.y) + T * .12, T * .12, T * .04, 0, 0, Math.PI * 2); c.fill();
+      dessinerImage(c, "balle", this.px(b.x), this.py(b.y - h), T * .3);
+      if (w.etat === "attend" && Progression.etat.fleches) {   // petit cercle pour montrer qu'on peut la toucher
+        c.strokeStyle = `rgba(255,179,0,${.5 + .5 * Math.sin(this.temps * 6)})`; c.lineWidth = 3;
+        c.beginPath(); c.arc(this.px(b.x), this.py(b.y), T * .28, 0, Math.PI * 2); c.stroke();
+      }
+    }
+    const court = w.etat !== "attend";
+    const saut = court ? Math.abs(Math.sin(this.temps * 18)) * T * .14 : Math.abs(Math.sin(this.temps * 9)) * T * .04;
+    const x = this.px(w.x), y = this.py(w.y) - saut;
+    c.fillStyle = "rgba(91,58,41,.18)"; c.beginPath(); c.ellipse(this.px(w.x), this.py(w.y) + T * .3, T * .24, T * .07, 0, 0, Math.PI * 2); c.fill();
+    if (court) { dessinerImage(c, "eclair", x - w.dir * T * .42, y - T * .18, T * .3); dessinerImage(c, "eclair", x - w.dir * T * .55, y + T * .1, T * .22); }
+    dessinerImage(c, w.porte ? "winter_balle" : "winter", x, y, T * .78);
   },
 
   /* ----------------------- Fin de journée ----------------------- */
@@ -671,8 +829,10 @@ const Cuisine = {
     }
     this.dessinerClients();
     for (const st of this.stations) this.dessinerStation(st);
+    for (const cl of this.clients) if (cl.nom) this.etiquette(cl.nom, this.px(cl.x + .5), this.gy + T * .78);   // prénoms sur le comptoir
     if (Progression.etat.fleches) this.dessinerContours();
     this.dessinerFile();
+    this.dessinerWinter();
     this.dessinerJoueur();
     this.dessinerEffets();
     c.restore();
@@ -773,8 +933,16 @@ const Cuisine = {
       const saut = cl.etat !== "attend" ? Math.abs(Math.sin(cl.t * 10)) * T * .06 : 0;
       const fache = cl.etat === "attend" && !cl.decouverte && cl.patience / cl.max < .25;
       const tremble = fache ? Math.sin(this.temps * 40) * T * .02 : 0;
-      dessinerImage(c, cl.animal, cx + tremble, base + T * 1.22 - saut, T * .92);
-      if (cl.etat === "attend") {
+      if (cl.perso === "tsuki") dessinerImage(c, cl.animal, cx + tremble, base + T * 1.5 - saut, T * .52);   // minuscule
+      else if (cl.perso === "suguru") {
+        c.save(); c.translate(cx, base + T * 1.22 - saut); c.rotate(Math.sin(this.temps * 1.3) * .18);
+        dessinerImage(c, cl.animal, 0, 0, T * .92); c.restore();
+      } else dessinerImage(c, cl.animal, cx + tremble, base + T * 1.22 - saut, T * .92);
+      if (cl.etat === "attend" && cl.fixe > 0) {
+        const bx = cx + T * .36, by = base + T * .4, r = T * .27;
+        c.fillStyle = "#fff"; c.beginPath(); c.arc(bx, by, r, 0, Math.PI * 2); c.fill();
+        dessinerImage(c, "question", bx, by, r * 1.3);
+      } else if (cl.etat === "attend") {
         // bulle de commande entourée de la jauge de patience
         const bx = cx + T * .36, by = base + T * .4, r = T * .27;
         const f = cl.decouverte ? 1 : Math.max(0, cl.patience / cl.max);
@@ -783,7 +951,8 @@ const Cuisine = {
         c.strokeStyle = "rgba(91,58,41,.15)"; c.beginPath(); c.arc(bx, by, r, 0, Math.PI * 2); c.stroke();
         c.strokeStyle = cl.decouverte ? "#7fb8ef" : f > .5 ? "#5cc28f" : f > .25 ? "#f2b33d" : "#e0453a";
         c.beginPath(); c.arc(bx, by, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * f); c.stroke(); c.lineCap = "butt";
-        dessinerImage(c, RECETTES[cl.recette].img, bx, by, r * 1.45);
+        const reveTsuki = cl.perso === "tsuki" && Math.floor(this.temps / 1.6) % 2;   // Tsuki rêve de poisson
+        dessinerImage(c, reveTsuki ? "poisson" : RECETTES[cl.recette].img, bx, by, r * 1.45);
         if (fache) dessinerImage(c, "colere", cx - T * .34, base + T * .78, T * .3);
       } else if (cl.etat === "part") {
         dessinerImage(c, cl.content ? "coeur" : "fache", cx + T * .34, base + T * .55, T * .36);
@@ -803,15 +972,8 @@ const Cuisine = {
     c.fillStyle = "#fff";
     c.beginPath(); c.ellipse(x, y + T * .2 - bob, T * .14, T * .17, 0, 0, Math.PI * 2); c.fill();
     const hy = y - T * .17 - bob - geste;
-    c.fillStyle = "#f5cfb2"; c.beginPath(); c.arc(x, hy, T * .19, 0, Math.PI * 2); c.fill();
-    c.fillStyle = "#8a5a40";
-    c.beginPath(); c.arc(x, hy - T * .02, T * .19, Math.PI * 1.05, Math.PI * 1.95); c.fill();
-    c.fillStyle = "#3b2a22";
-    c.beginPath(); c.arc(x - T * .065 + j.dir * T * .02, hy + T * .02, T * .025, 0, Math.PI * 2); c.fill();
-    c.beginPath(); c.arc(x + T * .065 + j.dir * T * .02, hy + T * .02, T * .025, 0, Math.PI * 2); c.fill();
-    c.fillStyle = "rgba(239,127,166,.5)";
-    c.beginPath(); c.arc(x - T * .11, hy + T * .08, T * .035, 0, Math.PI * 2); c.fill();
-    c.beginPath(); c.arc(x + T * .11, hy + T * .08, T * .035, 0, Math.PI * 2); c.fill();
+    if (IMG.tete_maman) dessinerImage(c, "tete_maman", x, hy - T * .03, T * .58);   // la cheffe, c'est Maman !
+    else { c.fillStyle = "#f5cfb2"; c.beginPath(); c.arc(x, hy, T * .19, 0, Math.PI * 2); c.fill(); }
     c.fillStyle = "#fff"; c.strokeStyle = "#e6d6c8"; c.lineWidth = 1;
     c.fillRect(x - T * .13, hy - T * .27, T * .26, T * .1); c.strokeRect(x - T * .13, hy - T * .27, T * .26, T * .1);
     for (const dx of [-.1, 0, .1]) { c.beginPath(); c.arc(x + dx * T, hy - T * .32, T * .1, 0, Math.PI * 2); c.fill(); }
@@ -864,7 +1026,7 @@ const Cuisine = {
         c.font = `800 ${Math.round(T * .32)}px Nunito, sans-serif`; c.textAlign = "right"; c.textBaseline = "middle";
         c.lineWidth = 4; c.strokeStyle = "#fff"; c.strokeText(e.txt, x, y);
         c.fillStyle = e.couleur; c.fillText(e.txt, x, y);
-        dessinerImage(c, "piece", x + T * .2, y, T * .32);
+        if (e.piece !== false) dessinerImage(c, "piece", x + T * .2, y, T * .32);
         c.globalAlpha = 1;
       } else if (e.type === "coeur") {
         c.globalAlpha = Math.min(1, e.vie); dessinerImage(c, "coeur", x, y, T * .3); c.globalAlpha = 1;

@@ -20,6 +20,8 @@ FLUENT = {
     "cadenas": "locked", "cadeau": "wrapped_gift", "fete": "party_popper", "etoile": "star",
     "tulipe": "tulip", "cafe": "hot_beverage", "miel": "honey_pot", "panier": "basket",
     "baguette": "baguette_bread", "citron": "lemon", "plante": "potted_plant", "croissant": "croissant",
+    "eclair": "high_voltage", "poisson": "fish", "question": "white_question_mark",
+    "telephone": "telephone", "zzz": "zzz",
 }
 
 

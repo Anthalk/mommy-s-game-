@@ -235,6 +235,118 @@ FICHIERS = {
     "tarte_fraises": tarte, "cupcake_nature": cupcake_nature, "brule": brule, "saladier": saladier,
 }
 
+
+# ------------------------------------------------------------------ les animaux de la famille
+NOIR = rad("noir", (0, "#5a5a66"), (.7, "#2a2a33"), (1, "#1b1b22"), cx=.38, cy=.3, r=.85)
+BLANC = rad("blanc", (0, "#ffffff"), (1, "#e3e6ee"), cx=.4, cy=.3, r=.9)
+ROSE = rad("rose", (0, "#ffb3c1"), (1, "#e9728b"), cx=.4, cy=.3, r=.9)
+
+
+def moustaches(y, ecart=46, longueur=70, couleur="#ffffff"):
+    t = ""
+    for dy, inc in ((-8, -10), (4, 0), (16, 10)):
+        t += f'<path d="M{128 - ecart} {y + dy} Q{128 - ecart - longueur / 2} {y + dy + inc / 2} {128 - ecart - longueur} {y + dy + inc}" stroke="{couleur}" stroke-width="3" fill="none" stroke-linecap="round" opacity=".9"/>'
+        t += f'<path d="M{128 + ecart} {y + dy} Q{128 + ecart + longueur / 2} {y + dy + inc / 2} {128 + ecart + longueur} {y + dy + inc}" stroke="{couleur}" stroke-width="3" fill="none" stroke-linecap="round" opacity=".9"/>'
+    return t
+
+
+def oeil(x, y, rx, ry, iris, pupille_rx=None, pupille_ry=None):
+    prx = pupille_rx or rx * .55
+    pry = pupille_ry or ry * .75
+    return (f'<ellipse cx="{x}" cy="{y}" rx="{rx}" ry="{ry}" fill="{iris}"/>'
+            f'<ellipse cx="{x}" cy="{y + 1}" rx="{prx}" ry="{pry}" fill="#121212"/>'
+            f'<circle cx="{x - rx * .3}" cy="{y - ry * .35}" r="{max(3, rx * .28)}" fill="#fff"/>'
+            f'<circle cx="{x + rx * .25}" cy="{y + ry * .3}" r="{max(1.5, rx * .12)}" fill="#fff" opacity=".8"/>')
+
+
+def winter(balle=False):
+    d = NOIR + BLANC + ROSE + rad("brun", (0, "#9a5a2e"), (1, "#4e2a12"), cx=.4, cy=.3, r=.8)
+    c = (
+        # oreilles semi-dressées (pointes cassées vers l'avant)
+        '<path d="M52 118 C38 70 44 34 62 26 C78 22 98 50 108 78 Z" fill="url(#noir)"/>'
+        '<path d="M62 32 C52 30 44 44 46 58 C56 52 64 42 62 32Z" fill="#3a3a44"/>'
+        '<path d="M204 118 C218 70 212 34 194 26 C178 22 158 50 148 78 Z" fill="url(#noir)"/>'
+        '<path d="M194 32 C204 30 212 44 210 58 C200 52 192 42 194 32Z" fill="#3a3a44"/>'
+        '<path d="M64 96 C60 70 64 52 72 46 C82 52 90 66 94 82 Z" fill="#c98b9a" opacity=".55"/>'
+        '<path d="M192 96 C196 70 192 52 184 46 C174 52 166 66 162 82 Z" fill="#c98b9a" opacity=".55"/>'
+        # tête
+        '<ellipse cx="128" cy="140" rx="90" ry="82" fill="url(#noir)"/>'
+        # liseré blanc + museau blanc (typique du border collie)
+        '<path d="M118 60 Q128 54 138 60 L152 132 Q128 142 104 132 Z" fill="url(#blanc)"/>'
+        '<ellipse cx="128" cy="178" rx="62" ry="44" fill="url(#blanc)"/>'
+        '<ellipse cx="128" cy="210" rx="40" ry="14" fill="url(#blanc)"/>'
+        + oeil(86, 128, 13, 14, "url(#brun)") + oeil(170, 128, 13, 14, "url(#brun)")
+        + '<path d="M70 108 Q86 100 100 108 M156 108 Q170 100 186 108" stroke="#6b6b78" stroke-width="4" fill="none" stroke-linecap="round"/>'
+        '<ellipse cx="128" cy="160" rx="18" ry="12" fill="#1c1c22"/><ellipse cx="122" cy="156" rx="6" ry="3.5" fill="#fff" opacity=".6"/>'
+    )
+    if balle:
+        d += rad("tennis", (0, "#f4ff7a"), (1, "#b5cc12"), cx=.4, cy=.3, r=.8)
+        c += ('<circle cx="128" cy="198" r="30" fill="url(#tennis)"/>'
+              '<path d="M102 184 Q128 198 154 184 M104 214 Q128 200 152 214" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/>')
+    else:
+        c += ('<path d="M128 170 Q116 186 100 180 M128 170 Q140 186 156 180" stroke="#2a2a33" stroke-width="5" fill="none" stroke-linecap="round"/>'
+              '<path d="M114 184 Q112 222 128 224 Q144 222 142 184 Q128 192 114 184Z" fill="url(#rose)"/>'
+              '<path d="M128 190 L128 214" stroke="#d65a78" stroke-width="3" stroke-linecap="round"/>')
+    return svg(c, d)
+
+
+def chat_base(oreille_d_pliee=False):
+    c = ('<path d="M44 128 L54 30 Q58 24 66 30 L118 72 Z" fill="url(#noir)"/>'
+         '<path d="M58 104 L64 46 L100 78 Z" fill="url(#rose)" opacity=".85"/>')
+    if oreille_d_pliee:
+        c += ('<path d="M212 128 L206 54 Q204 44 194 48 L138 72 Z" fill="url(#noir)"/>'
+              '<path d="M200 104 L198 64 L158 80 Z" fill="url(#rose)" opacity=".85"/>')
+    else:
+        c += ('<path d="M212 128 L202 30 Q198 24 190 30 L138 72 Z" fill="url(#noir)"/>'
+              '<path d="M198 104 L192 46 L156 78 Z" fill="url(#rose)" opacity=".85"/>')
+    c += '<ellipse cx="128" cy="144" rx="96" ry="82" fill="url(#noir)"/>'
+    return c
+
+
+def tsuki():
+    d = NOIR + BLANC + ROSE + rad("vert", (0, "#e6f07a"), (1, "#9fbf2f"), cx=.4, cy=.3, r=.9)
+    c = (chat_base()
+         # plastron « tuxedo » : petit liseré + museau blanc
+         + '<path d="M128 104 L112 162 L144 162 Z" fill="url(#blanc)"/>'
+         + '<ellipse cx="128" cy="184" rx="56" ry="38" fill="url(#blanc)"/>'
+         # très grands yeux de chaton qui réclame
+         + oeil(82, 134, 25, 28, "url(#vert)", 15, 23) + oeil(174, 134, 25, 28, "url(#vert)", 15, 23)
+         + '<path d="M120 164 L136 164 L128 174 Z" fill="#f08aa0"/>'
+         # bouche ouverte : « miaou ! »
+         + '<path d="M128 174 L128 180" stroke="#5b3a40" stroke-width="3"/>'
+         + '<ellipse cx="128" cy="194" rx="14" ry="15" fill="#7a2433"/><ellipse cx="128" cy="202" rx="9" ry="6" fill="#f08aa0"/>'
+         + moustaches(180))
+    return svg(c, d)
+
+
+def suguru():
+    d = NOIR + BLANC + ROSE + rad("jaune", (0, "#ffe27a"), (1, "#e0a92e"), cx=.4, cy=.3, r=.9)
+    c = ('<g transform="rotate(-12 128 140)">' + chat_base(oreille_d_pliee=True)
+         # tache blanche asymétrique
+         + '<path d="M92 160 C96 130 124 118 150 126 C176 134 190 160 184 186 C176 214 140 224 110 214 C88 206 86 182 92 160Z" fill="url(#blanc)"/>'
+         + '<path d="M150 126 C160 110 176 108 182 120 C178 132 164 132 150 126Z" fill="url(#blanc)"/>'
+         # un œil grand ouvert qui fixe le vide, l'autre à moitié fermé
+         + oeil(84, 130, 22, 24, "url(#jaune)", 6, 20)
+         + '<ellipse cx="172" cy="134" rx="20" ry="11" fill="url(#jaune)"/><ellipse cx="174" cy="136" rx="5" ry="8" fill="#121212"/>'
+         + '<path d="M150 126 Q172 118 194 128 L194 134 Q172 126 150 134Z" fill="#2a2a33"/>'
+         + '<path d="M120 164 L136 164 L128 173 Z" fill="#f08aa0"/>'
+         + '<path d="M128 173 Q120 184 110 180 M128 173 Q136 184 146 180" stroke="#5b3a40" stroke-width="3" fill="none" stroke-linecap="round"/>'
+         # « blep » : bout de langue qui dépasse
+         + '<ellipse cx="124" cy="188" rx="9" ry="8" fill="url(#rose)"/>'
+         + moustaches(176) + '</g>')
+    return svg(c, d)
+
+
+def balle():
+    d = rad("tennis", (0, "#f4ff7a"), (1, "#b5cc12"), cx=.4, cy=.3, r=.8)
+    c = ('<circle cx="128" cy="128" r="96" fill="url(#tennis)"/>'
+         '<path d="M48 76 Q128 128 48 186 M208 76 Q128 128 208 186" stroke="#fff" stroke-width="12" fill="none" stroke-linecap="round"/>'
+         '<ellipse cx="96" cy="84" rx="26" ry="14" fill="#fff" opacity=".35" transform="rotate(-30 96 84)"/>')
+    return svg(c, d)
+
+
+FICHIERS.update({"balle": balle, "winter": winter, "winter_balle": lambda: winter(True), "tsuki": tsuki, "suguru": suguru})
+
 if __name__ == "__main__":
     for nom, f in FICHIERS.items():
         open(os.path.join(ICI, nom + ".svg"), "w").write(f())

@@ -86,5 +86,6 @@ const IMAGES = [
     ...Object.values(DECO_MEUBLES), ...ANIMAUX,
     "saladier", "brule", "cloche", "piece", "poubelle", "coeur", "colere", "fache", "feu", "etincelles",
     "valide", "attention", "fumee", "sablier", "cadenas", "cadeau", "fete", "etoile",
+    "winter", "winter_balle", "tsuki", "suguru", "balle", "eclair", "poisson", "question", "telephone", "zzz",
   ]),
 ];

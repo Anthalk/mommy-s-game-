@@ -19,7 +19,7 @@ function rectArrondi(c, x, y, w, h, r) {
 
 /* ----------------------------- Images ----------------------------- */
 const IMG = {};
-const srcImg = (nom) => `assets/img/${nom}.png`;
+const srcImg = (nom) => (typeof AVATARS_URL !== "undefined" && AVATARS_URL[nom]) || `assets/img/${nom}.png`;
 function chargerImages(noms) {
   return Promise.all(noms.map((n) => new Promise((ok) => {
     const im = new Image();

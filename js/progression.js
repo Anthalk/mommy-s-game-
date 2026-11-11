@@ -7,7 +7,7 @@ const APERCU = PARAMS.has("apercu");   // ?apercu : tout est débloqué (pour te
 
 const Progression = {
   cle: "patisserie-maman-v2",
-  etat: { etoiles: [], bonVu: false, fleches: true },
+  etat: { etoiles: [], bonVu: false, fleches: true, scenes: [] },
   charger() {
     if (PARAMS.has("reset")) { try { localStorage.removeItem(this.cle); } catch (e) {} }
     try { const s = JSON.parse(localStorage.getItem(this.cle)); if (s) Object.assign(this.etat, s); } catch (e) {}

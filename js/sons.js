@@ -18,6 +18,24 @@ const Son = {
     o.connect(g).connect(this.ctx.destination);
     o.start(t); o.stop(t + duree + .02);
   },
+  glisse(points, duree, type = "sine", vol = .12, retard = 0) {
+    // fréquence qui varie (miaulement, aboiement…)
+    if (this.coupe || !this.ctx) return;
+    const t = this.ctx.currentTime + retard;
+    const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(points[0], t);
+    points.slice(1).forEach((f, i) => o.frequency.linearRampToValueAtTime(f, t + duree * (i + 1) / (points.length - 1)));
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .02);
+    g.gain.setValueAtTime(vol, t + duree * .7); g.gain.exponentialRampToValueAtTime(.0001, t + duree);
+    o.connect(g).connect(this.ctx.destination);
+    o.start(t); o.stop(t + duree + .02);
+  },
+  wouf()     { this.init(); this.glisse([420, 260, 180], .14, "sawtooth", .07); this.glisse([440, 280, 190], .14, "sawtooth", .07, .2); },
+  miaou()    { this.init(); this.glisse([520, 780, 900, 560], .55, "triangle", .1); },
+  sonnerie() {
+    this.init();
+    for (let k = 0; k < 2; k++) for (let i = 0; i < 16; i++) this.note(i % 2 ? 1250 : 1000, .045, "square", .035, k * 1.1 + i * .05);
+  },
   prendre()  { this.note(620, .08, "triangle", .1); this.note(880, .08, "triangle", .08, .05); },
   poser()    { this.note(420, .09, "triangle", .1); },
   plouf()    { this.note(300, .12, "sine", .14); this.note(520, .1, "sine", .08, .06); },

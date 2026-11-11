@@ -22,6 +22,24 @@ touchables pour voir la recette en grand), flèches jaunes et message en bas
 limite de temps, clients plus patients après un départ. Pas de « game over ».
 La progression est enregistrée dans le navigateur (on peut jouer un jour à la fois).
 
+## La famille
+
+Chaque jour commence par une petite scène de dialogue (le jour 1 : le
+téléphone qui sonne…). Un membre de la famille vient chaque jour comme client
+spécial (prénom affiché sur le comptoir, répliques à l'arrivée et au service),
+puis tout le monde le jour 5, avant une scène finale où chacun souhaite
+l'anniversaire. Les animaux ont leur propre comportement :
+
+- **Winter** débarque dans la cuisine avec sa balle (à partir du jour 2) : la
+  toucher pour la lancer, sinon il suit la cheffe partout.
+- **Tsuki** (jour 3) est si petite qu'on ne voit que ses oreilles dépasser du
+  comptoir, et elle réclame à manger (miaou !).
+- **Suguru** (jour 4) fixe le mur avant de se décider à commander.
+
+Prénoms, apparences (avatars dessinés automatiquement), répliques, scènes et
+programme des visites : tout est dans `js/famille.js`. La cheffe a le visage
+de l'avatar de Maman.
+
 ## Personnaliser
 
 Tout se règle dans `js/config.js` : prénom, textes du bon, code, contenu du QR
@@ -50,7 +68,8 @@ Netlify Drop (glisser le dossier sur https://app.netlify.com/drop).
 
 - Illustrations 3D **Fluent Emoji** de Microsoft (licence MIT, voir
   `assets/img/LICENCE-fluent-emoji.txt`).
-- Farine, sucre, chantilly, bougies, tarte aux fraises, gâteaux cuits et pâtes :
+- Farine, sucre, chantilly, bougies, tarte aux fraises, gâteaux cuits, pâtes,
+  Winter, Tsuki, Suguru et la balle :
   dessinés pour le jeu (`assets/sources/generer_svg.py`). Pour les régénérer :
   `python3 assets/sources/generer_svg.py`, puis
   `node assets/sources/rasteriser.js assets/sources <dossier_png>` (Playwright),
