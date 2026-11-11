@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>Chiffrer le code du bon</title>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  html, body { overflow: auto; -webkit-user-select: text; user-select: text; }
+  main { max-width: 520px; margin: 0 auto; padding: 24px 16px 40px; }
+  label { display: block; font-weight: 800; margin: 14px 0 4px; text-align: left; }
+  input, textarea { width: 100%; font: 700 1.05rem Nunito, sans-serif; padding: 10px 12px; border: 2px solid #ecd5c0; border-radius: 12px; background: #fff; color: var(--choco); }
+  textarea { height: 110px; font: .85rem/1.4 ui-monospace, monospace; word-break: break-all; }
+  .note { font-size: .92rem; opacity: .8; text-align: left; }
+  #resultat[hidden] { display: none; }
+  .ok { color: #2e9a6a; font-weight: 800; }
+  .erreur { color: #d14b4b; font-weight: 800; }
+</style>
+</head>
+<body>
+<main class="carte">
+  <h2>Chiffrer le code du bon</h2>
+  <p class="note">Tout se passe dans ton navigateur : rien n'est envoyé sur internet. Cette page ne garde rien en mémoire.</p>
+
+  <label for="code">Code de la carte cadeau</label>
+  <input id="code" autocomplete="off" spellcheck="false">
+
+  <label for="mot">Mot magique</label>
+  <input id="mot" autocomplete="off" spellcheck="false" placeholder="ex. : plusieurs mots, c'est mieux">
+  <p class="note">Majuscules, accents et ponctuation ne comptent pas : « Pyramides de Roswell ! » = « pyramides de roswell ». Choisis plutôt deux ou trois mots qu'un seul (un mot seul se devine plus facilement par un ordinateur).</p>
+
+  <button class="bouton" id="btn">Chiffrer</button>
+  <p id="message"></p>
+
+  <div id="resultat" hidden>
+    <label for="sortie">Texte à coller dans <code>js/config.js</code>, à la ligne <code>codeChiffre</code></label>
+    <textarea id="sortie" readonly></textarea>
+    <button class="bouton secondaire petit" id="copier">Copier</button>
+    <p class="note">Dans <code>js/config.js</code>, la ligne doit ressembler à :<br><code>codeChiffre: "v1:…",</code><br>et la ligne <code>code: "",</code> doit rester vide.</p>
+  </div>
+</main>
+<script src="js/secret.js"></script>
+<script>
+  const $ = (s) => document.querySelector(s);
+  if (!Secret.disponible()) $("#message").innerHTML = '<span class="erreur">Ce navigateur ne permet pas le chiffrement ici. Ouvre cette page depuis le site en ligne (adresse en https://).</span>';
+  $("#btn").addEventListener("click", async () => {
+    const code = $("#code").value.trim(), mot = $("#mot").value;
+    if (!code || !Secret.normaliser(mot)) { $("#message").innerHTML = '<span class="erreur">Remplis le code et le mot magique.</span>'; return; }
+    $("#message").textContent = "Chiffrement…";
+    try {
+      const blob = await Secret.chiffrer(code, mot);
+      const verif = await Secret.dechiffrer(blob, mot);   // on vérifie tout de suite
+      if (verif !== code) throw new Error("vérification");
+      $("#sortie").value = blob; $("#resultat").hidden = false;
+      $("#message").innerHTML = `<span class="ok">C'est prêt ✓ (vérifié : le mot magique redonne bien le code). Note bien ton mot magique quelque part !</span>`;
+    } catch (e) { $("#message").innerHTML = '<span class="erreur">Erreur pendant le chiffrement : ' + e.message + "</span>"; }
+  });
+  $("#copier").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText($("#sortie").value); $("#copier").textContent = "Copié ✓"; }
+    catch (e) { $("#sortie").select(); $("#copier").textContent = "Sélectionné : fais Copier"; }
+  });
+</script>
+</body>
+</html>

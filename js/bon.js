@@ -1,6 +1,7 @@
 "use strict";
 /* Bon cadeau (affichage, PDF téléchargeable) et confettis */
 /* ===================== LE CADEAU ===================== */
+let codeBon = CONFIG.code || "";   // rempli après le mot magique si le code est chiffré
 const siteCourt = () => (CONFIG.lien || "").replace(/^https?:\/\//, "").replace(/\/$/, "");
 
 function remplirBon() {
@@ -10,14 +11,14 @@ function remplirBon() {
   l.hidden = !CONFIG.lien; l.href = CONFIG.lien || "#";
   l.textContent = "À utiliser sur " + siteCourt();
   $("#bon-details").textContent = CONFIG.details;
-  $("#bon-code").textContent = CONFIG.code;
+  $("#bon-code").textContent = codeBon || "(code à venir)";
   $("#bon-validite").textContent = CONFIG.validite;
   $("#bon-signature").textContent = CONFIG.signature;
 }
 
 $("#btn-copier").addEventListener("click", async () => {
   const b = $("#btn-copier");
-  try { await navigator.clipboard.writeText(CONFIG.code); b.textContent = "Code copié ✓"; }
+  try { await navigator.clipboard.writeText(codeBon); b.textContent = "Code copié ✓"; }
   catch (e) {   // repli : on sélectionne le code pour une copie manuelle
     const r = document.createRange(); r.selectNodeContents($("#bon-code"));
     const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
@@ -34,12 +35,50 @@ $("#cadeau").addEventListener("click", async () => {
   Son.note(400, .15, "triangle", .1); Son.note(500, .15, "triangle", .1, .25);
   await pause(1000);
   c.classList.remove("secoue");
+  if (CONFIG.codeChiffre && !codeBon) {
+    // le mot magique a peut-être déjà été donné sur cet appareil
+    const memo = Progression.etat.motMagique;
+    if (memo && Secret.disponible()) { try { codeBon = await Secret.dechiffrer(CONFIG.codeChiffre, memo); } catch (e) {} }
+    if (!codeBon) return demanderMot();
+  }
+  ouvrirBon();
+});
+
+function ouvrirBon() {
   remplirBon();
   Progression.etat.bonVu = true; Progression.sauver();
   afficher("ecran-bon");
   Son.victoire();
   lancerConfettis(220);
   setTimeout(() => lancerConfettis(120), 900);
+}
+
+function demanderMot() {
+  $("#cadeau-intro").hidden = true;
+  $("#mot-magique").hidden = false;
+  $("#mot-indice").textContent = CONFIG.indiceMotMagique || "";
+  $("#mot-erreur").textContent = "";
+  setTimeout(() => $("#mot-saisie").focus(), 100);
+}
+
+$("#mot-magique").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const mot = $("#mot-saisie").value, err = $("#mot-erreur"), form = $("#mot-magique");
+  if (!Secret.normaliser(mot)) return;
+  if (!Secret.disponible()) { err.textContent = "Ouvre le jeu depuis son adresse en ligne (https://…) pour pouvoir ouvrir le cadenas."; return; }
+  $("#btn-mot").disabled = true; err.textContent = "";
+  try {
+    codeBon = await Secret.dechiffrer(CONFIG.codeChiffre, mot);
+    Progression.etat.motMagique = Secret.normaliser(mot); Progression.sauver();
+    Son.caisse();
+    form.hidden = true;
+    ouvrirBon();
+  } catch (x) {
+    Son.erreur();
+    err.textContent = choisir(["Ce n'est pas le bon mot magique…", "Raté ! Le cadenas ne bouge pas.", "Non… Essaie encore !"]);
+    form.classList.remove("non"); void form.offsetWidth; form.classList.add("non");
+  }
+  $("#btn-mot").disabled = false;
 });
 
 $("#btn-retour-semaine").addEventListener("click", () => Semaine.afficher());
@@ -87,14 +126,14 @@ async function imageDuBon() {
   for (const l of lignes(c, CONFIG.details, W - 300)) { c.fillText(l, W / 2, y); y += 46; }
   y += 40;
   // le code de la carte cadeau, bien en évidence
-  if (CONFIG.code) {
+  if (codeBon) {
     rectArrondi(c, 150, y, W - 300, 230, 30); c.fillStyle = "#fff4e8"; c.fill();
     c.setLineDash([16, 12]); c.lineWidth = 5; c.strokeStyle = "#e9b44c"; c.stroke(); c.setLineDash([]);
     c.font = '800 30px Nunito, sans-serif'; c.fillStyle = "#d65a87";
     c.fillText("C O D E   D E   L A   C A R T E   C A D E A U", W / 2, y + 70);
     let taille = 76;
-    do { c.font = `800 ${taille}px Nunito, sans-serif`; taille -= 4; } while (c.measureText(CONFIG.code).width > W - 360 && taille > 30);
-    c.fillStyle = "#5b3a29"; c.fillText(CONFIG.code, W / 2, y + 165);
+    do { c.font = `800 ${taille}px Nunito, sans-serif`; taille -= 4; } while (c.measureText(codeBon).width > W - 360 && taille > 30);
+    c.fillStyle = "#5b3a29"; c.fillText(codeBon, W / 2, y + 165);
     y += 230 + 70;
   }
   if (CONFIG.lien) {   // adresse du site (cliquable dans le PDF)

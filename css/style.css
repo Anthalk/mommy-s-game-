@@ -296,3 +296,14 @@ p { font-size: clamp(1rem, 4.2vw, 1.2rem); line-height: 1.5; max-width: 30em; ma
 @keyframes choc { 0%, 100% { transform: none; } 20% { transform: translate(-10px, 4px) rotate(-2deg); } 40% { transform: translate(9px, -3px) rotate(2deg); } 60% { transform: translate(-6px, 2px); } 80% { transform: translate(4px, 0); } }
 .lien-site { display: block; margin-top: 10px; font-weight: 800; color: var(--rose-fonce); text-decoration: underline; text-underline-offset: 3px; }
 .lien-site[hidden] { display: none; }
+
+/* ---- Le mot magique ---- */
+#mot-magique { max-width: 400px; margin: 0 auto; }
+#mot-magique[hidden], #cadeau-intro[hidden] { display: none; }
+#mot-magique.non { animation: choc .45s ease both; }
+.mot-cadenas { width: 70px; height: 70px; }
+.mot-indice { font-style: italic; opacity: .8; }
+#mot-saisie { width: 100%; font: 800 1.2rem Nunito, sans-serif; text-align: center; padding: 12px; margin-top: 6px;
+  border: 3px solid #ecd5c0; border-radius: 14px; background: #fff; color: var(--choco); -webkit-user-select: text; user-select: text; }
+#mot-saisie:focus { outline: none; border-color: var(--rose); }
+.mot-erreur { color: #d14b4b; font-weight: 800; min-height: 1.4em; }

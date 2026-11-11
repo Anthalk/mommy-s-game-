@@ -42,8 +42,21 @@ de l'avatar de Maman.
 
 ## Personnaliser
 
-Tout se règle dans `js/config.js` : prénom, textes du bon, **code de la carte
-cadeau** (ligne `code: "…"`), date de révélation et patience des clients. Les recettes et les jours sont dans
+Tout se règle dans `js/config.js` : prénom, textes du bon, date de révélation
+et patience des clients.
+
+### Le code de la carte cadeau et le « mot magique »
+
+Le code n'est jamais écrit en clair dans le jeu : il est chiffré (AES-256,
+clé dérivée du mot magique) et ne s'affiche qu'une fois le mot magique saisi
+à l'ouverture du cadeau. Le mot est ensuite mémorisé sur l'appareil.
+
+1. Ouvrir `chiffrer.html` (sur le site en ligne, en https), taper le code et le
+   mot magique, cliquer sur « Chiffrer ». Rien n'est envoyé sur internet.
+2. Coller le résultat (qui commence par `v1:`) dans `js/config.js`, ligne
+   `codeChiffre: "…"`, et laisser `code: ""` vide.
+3. Donner le mot magique le jour J. Majuscules, accents et ponctuation ne
+   comptent pas. Deux ou trois mots valent mieux qu'un seul. Les recettes et les jours sont dans
 `js/donnees.js`.
 
 ## Tester

@@ -9,8 +9,14 @@ const CONFIG = {
   details: "Une carte cadeau pour un atelier pâtisserie à L'Atelier de Nils.",
   lien: "https://www.latelierdenils.fr/",   // Site où utiliser la carte cadeau
 
-  // 👉👉👉 LE CODE DE LA CARTE CADEAU : remplace CODE-A-REMPLIR par ton code (garde les guillemets)
-  code: "CODE-A-REMPLIR",
+  // 👉👉👉 LE CODE DE LA CARTE CADEAU, protégé par le « mot magique »
+  // 1. ouvre la page chiffrer.html du site (ex. https://ton-site.netlify.app/chiffrer.html)
+  // 2. tape le code de la carte et le mot magique, clique sur « Chiffrer »
+  // 3. colle le résultat ci-dessous, entre les guillemets (il commence par v1:)
+  codeChiffre: "",
+  indiceMotMagique: "Anthony va te le donner. Demande-lui !",   // affiché quand on demande le mot
+  // (sans mot magique : laisse codeChiffre vide et mets le code en clair ici… mais il sera lisible par tous)
+  code: "",
 
   validite: "Valable un an",                // Date ou durée de validité
   signature: "Avec tout mon amour ❤️",      // Ta signature

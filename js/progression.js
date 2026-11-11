@@ -109,6 +109,7 @@ const Cadeau = {
   minuteur: null,
   afficher() {
     afficher("ecran-cadeau");
+    $("#cadeau-intro").hidden = false; $("#mot-magique").hidden = true;
     clearInterval(this.minuteur);
     this.maj();
     this.minuteur = setInterval(() => { if ($("#ecran-cadeau").classList.contains("actif")) this.maj(); else clearInterval(this.minuteur); }, 1000);

@@ -118,10 +118,21 @@
     <button class="bouton secondaire" onclick="Semaine.afficher()">Retour à la semaine</button>
   </div>
   <div id="cadeau-pret" hidden>
-    <h2>Mais… qu'est-ce que c'est&nbsp;?</h2>
-    <p>En rangeant, tu trouves un paquet sur le comptoir.<br>Il y a ton nom dessus&nbsp;!</p>
-    <p><strong>Touche-le pour l'ouvrir.</strong></p>
-    <button id="cadeau" aria-label="Ouvrir le cadeau"><img src="assets/img/cadeau.png" alt=""></button>
+    <div id="cadeau-intro">
+      <h2>Mais… qu'est-ce que c'est&nbsp;?</h2>
+      <p>En rangeant, tu trouves un paquet sur le comptoir.<br>Il y a ton nom dessus&nbsp;!</p>
+      <p><strong>Touche-le pour l'ouvrir.</strong></p>
+      <button id="cadeau" aria-label="Ouvrir le cadeau"><img src="assets/img/cadeau.png" alt=""></button>
+    </div>
+    <form id="mot-magique" class="carte" hidden>
+      <img class="mot-cadenas" src="assets/img/cadenas.png" alt="">
+      <h2>Le mot magique</h2>
+      <p>Le paquet est fermé par un cadenas. Pour l'ouvrir, il faut le mot magique.</p>
+      <p class="mot-indice" id="mot-indice"></p>
+      <input id="mot-saisie" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Le mot magique…" aria-label="Mot magique">
+      <button class="bouton" id="btn-mot" type="submit">Ouvrir le cadenas</button>
+      <p class="mot-erreur" id="mot-erreur"></p>
+    </form>
   </div>
 </section>
 
@@ -168,6 +179,7 @@
 <script src="js/dialogue.js"></script>
 <script src="js/progression.js"></script>
 <script src="js/cuisine.js"></script>
+<script src="js/secret.js"></script>
 <script src="js/bon.js"></script>
 <script>
   $("#titre-accueil").innerHTML = `Joyeux anniversaire<br>${echapper(CONFIG.prenom)}&nbsp;!`;
