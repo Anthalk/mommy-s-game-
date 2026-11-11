@@ -13,7 +13,7 @@ const CONFIG = {
   // 1. ouvre la page chiffrer.html du site (ex. https://ton-site.netlify.app/chiffrer.html)
   // 2. tape le code de la carte et le mot magique, clique sur « Chiffrer »
   // 3. colle le résultat ci-dessous, entre les guillemets (il commence par v1:)
-  codeChiffre: "",
+  codeChiffre: "v1:z5SBt58AGEPyes624upEvEk5ObpFsZUUKBCT0JPGD6XxnGo8Prmd3u3UUHX09daxvmULz9lbPLJk+RxxHK30",
   indiceMotMagique: "Anthony va te le donner. Demande-lui !",   // affiché quand on demande le mot
   // (sans mot magique : laisse codeChiffre vide et mets le code en clair ici… mais il sera lisible par tous)
   code: "",
