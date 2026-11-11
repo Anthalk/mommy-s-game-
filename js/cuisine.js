@@ -747,7 +747,7 @@ const Cuisine = {
       case "attend":
         w.wouf -= dt;
         if (w.wouf <= 0) { w.wouf = 2.6; Son.wouf(); this.effets.push({ type: "texte", txt: "Wouf !", x: w.x, y: w.y - .55, vie: .9, couleur: "#5b3a29", piece: false }); }
-        // il suit la cheffe partout avec sa balle
+        // elle suit la cheffe partout avec sa balle
         if (w.t > 1 && Math.hypot(j.x - w.x, j.y - w.y) > 2.6) {
           const p = this.caseLibrePres(j.x, j.y); w.cx = p.x; w.cy = p.y; w.porte = true; w.balle = null; w.etat = "retour";
         }

@@ -37,7 +37,7 @@ const FAMILLE = {
   },
   papa: {
     nom: "Papa",                                  // ✏️ son prénom
-    avatar: { peau: "#eebd98", cheveux: "#8f8f8f", coupe: "degarni", frange: false, barbe: "courte", lunettes: "carrees", haut: "#5b7fb5" },
+    avatar: { peau: "#eebd98", cheveux: "#4a3020", coupe: "court", frange: false, barbe: "courte", lunettes: null, haut: "#5b7fb5" },
     recette: "tarte",
     bonjour: "Bonjour madame la cheffe ! Une tarte aux fraises, et pas de chichis.",
     merci: "Encore meilleure que celle de la boulangerie !",
@@ -53,7 +53,7 @@ const FAMILLE = {
   },
 };
 
-// Les animaux (illustrations dans assets/img : winter.png, tsuki.png, suguru.png)
+// Les animaux (illustrations dans assets/img : winter.png, tsuki.png, suguru.png) — Winter est une chienne
 const ANIMAUX_FAMILLE = {
   winter: {
     nom: "Winter", img: "winter",
@@ -100,7 +100,7 @@ const SCENES = {
     { qui: "soeur", texte: "Coucou Maman ! Il paraît que tu as ouvert une pâtisserie ? J'arrive !" },
     { qui: "winter", son: "wouf", texte: "WOUF ! WOUF ! WOUF !" },
     { qui: null, img: "winter_balle", texte: "Winter vient d'entrer dans la cuisine. À 3000 ampères. Avec sa balle." },
-    { qui: "soeur", texte: "S'il te ramène sa balle, touche-la pour la lancer… sinon il ne te lâchera pas !" },
+    { qui: "soeur", texte: "Si elle te ramène sa balle, touche-la pour la lancer… sinon elle ne te lâchera pas !" },
   ],
   jour3: [
     { qui: "papa", texte: "Bonjour madame la cheffe ! On m'a dit que la tarte aux fraises était à tomber." },

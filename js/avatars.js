@@ -54,7 +54,7 @@ function dessinerAvatar(a, epaules = true) {
   // ---- barbe ----
   if (a.barbe === "courte") {
     forme(() => { c.moveTo(54, 132); c.quadraticCurveTo(58, 214, 128, 216); c.quadraticCurveTo(198, 214, 202, 132); c.quadraticCurveTo(196, 186, 150, 180); c.quadraticCurveTo(128, 172, 106, 180); c.quadraticCurveTo(60, 186, 54, 132); c.closePath(); }, cheveux);
-    forme(() => c.ellipse(128, 186, 20, 9, 0, 0, Math.PI * 2), melanger(peau, "#8a3b3b", .3));
+
   }
   if (a.barbe === "courte" || a.barbe === "moustache") forme(() => { c.moveTo(100, 168); c.quadraticCurveTo(128, 150, 156, 168); c.quadraticCurveTo(128, 162, 100, 168); c.closePath(); }, cheveux);
 
@@ -69,7 +69,10 @@ function dessinerAvatar(a, epaules = true) {
   for (const x of [98, 158]) { c.beginPath(); c.moveTo(x - 14, 116); c.quadraticCurveTo(x, 108, x + 14, 116); c.stroke(); }
   c.strokeStyle = peauF; c.lineWidth = 4;
   c.beginPath(); c.moveTo(124, 150); c.quadraticCurveTo(128, 156, 133, 151); c.stroke();
-  if (a.barbe !== "courte") {
+  if (a.barbe === "courte") {   // sourire qui se voit dans la barbe
+    forme(() => { c.moveTo(108, 176); c.quadraticCurveTo(128, 198, 148, 176); c.quadraticCurveTo(128, 186, 108, 176); c.closePath(); }, "#7a3434");
+    forme(() => { c.moveTo(112, 177); c.quadraticCurveTo(128, 184, 144, 177); c.quadraticCurveTo(128, 182, 112, 177); c.closePath(); }, "#ffffff");
+  } else {
     c.strokeStyle = "#8a3b3b"; c.lineWidth = 5;
     c.beginPath(); c.moveTo(108, 172); c.quadraticCurveTo(128, 190, 148, 172); c.stroke();
   }

@@ -31,7 +31,7 @@ puis tout le monde le jour 5, avant une scène finale où chacun souhaite
 l'anniversaire. Les animaux ont leur propre comportement :
 
 - **Winter** débarque dans la cuisine avec sa balle (à partir du jour 2) : la
-  toucher pour la lancer, sinon il suit la cheffe partout.
+  toucher pour la lancer, sinon elle suit la cheffe partout.
 - **Tsuki** (jour 3) est si petite qu'on ne voit que ses oreilles dépasser du
   comptoir, et elle réclame à manger (miaou !).
 - **Suguru** (jour 4) fixe le mur avant de se décider à commander.
